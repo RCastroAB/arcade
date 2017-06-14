@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1497478526 source:c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<windows.h>
+	<time.h>
+
