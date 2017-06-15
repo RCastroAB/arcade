@@ -1,13 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <windows.h>
 #include <time.h>
 
-/*#define col 31
-#define lin 22
-#define UPARROW     72
-#define DOWNARROW   80*/
+#ifdef _WIN32
+    #include <windows.h>
+    #define DIV 1048576
+    #define WIDTH 7
+#endif
+
+#ifdef linux
+    #include <unistd.h>
+#endif
+
+
 #define UPARROW     '8'
 #define DOWNARROW   '2'
 #define UPARROW2    'w'
@@ -20,6 +26,7 @@ typedef struct v_ball{
 
 typedef struct player{
     int x,y,pontos;
+    int autoplay; //Se -1, player mode, se 1, AI moves the player;
 }player;
 
 int col,lin;
@@ -57,7 +64,17 @@ int raid(){
 
 void printMap(){
     system("@cls");
-    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win.\n\n",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
+    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
+    if(players[0].autoplay==-1){
+        printf(" | Player vs ");
+    }else{
+        printf(" | COM vs ");
+    }
+    if(players[1].autoplay==-1){
+        printf("Player mode\n\n");
+    }else{
+        printf("COM mode\n\n");
+    }
     int i,j;
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++){
@@ -79,8 +96,8 @@ void printMap(){
                 case 50:
                     printf(" | ");
                     break;
-                case 9:
-                case 7:
+                case 90:
+                case 70:
                     printf(" o ");
                     break;
                 case 10:
@@ -129,7 +146,6 @@ void init(){
     }
     fclose(helper);
     createPlayers();
-    printMap();
 }
 
 void gameLogic(){
@@ -138,10 +154,10 @@ void gameLogic(){
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++){
             switch(map[i][j]){
-                case 9:
+                case 90:
                     ball.x=0;
                     createBall(0);
-                    map[i][j]=7;
+                    map[i][j]=70;
                     break;
                 case 10:
                     printMap();
@@ -149,12 +165,12 @@ void gameLogic(){
                     fflush(stdin);
                     getche();
                     map[i][j]=8;
-                    map[1+(rand()%(lin-2))][col/2]=9;
+                    map[1+(rand()%(lin-2))][col/2]=90;
                     break;
-                case 7:
+                case 70:
                     if(ball.moved!=0) break;
-                    //ai(i,j,0);
-                    ai(i,j,1);
+                    if(players[0].autoplay==1) ai(i,j,0);
+                    if(players[1].autoplay==1) ai(i,j,1);
                     ball.moved=1;
                     if(i+ball.y>lin || i+ball.y<0 || j+ball.x>col || j+ball.y<0){
                         createBall(i);
@@ -176,7 +192,7 @@ void gameLogic(){
                             gameLogic();
                             break;
                         case 0:
-                            map[i+ball.y][j+ball.x]=7;
+                            map[i+ball.y][j+ball.x]=70;
                             map[i][j]=0;
                             break;
                         case 1:
@@ -195,8 +211,7 @@ void gameLogic(){
 
 void ai(int linha, int coluna, int id){
     int r=raid();
-    if(r<15){}
-    else if((id==0 && ball.x==-1)||(id==1 && ball.x==1)){ //Seja inteligente
+    if((id==0 && ball.x==-1)||(id==1 && ball.x==1)){ //Seja inteligente
         if(linha<players[id].y+1) movePlayer(id,'u');
         else if(linha>players[id].y+2) movePlayer(id,'d');
     }else{
@@ -209,22 +224,35 @@ void ai(int linha, int coluna, int id){
 void createPlayers(){
   int i,j,count=0,aux;
   for(j=0;j<col;j++){
-    if(map[1][j]==8 || map[5][j]==8){
-        aux=count;
-        for(i=0;i<lin;i++){
-            if(map[i][j]==1 || map[i][j]==2){
-                players[count].x=j;
-                players[count].y=i;
-                players[count].pontos=0;
-                count++;
-                break;
+      for(i=0;i<lin;i++){
+            if(map[i][j]==8){
+                aux=count;
+                for(i=0;i<lin;i++){
+                    if(map[i][j]==0){
+                        printf("Malformed map. There are 0 on the player movement area. (%i,%i)\nExiting...\n\n",i,j);
+                        exit(3);
+                    }
+                    if(map[i][j]==1 || map[i][j]==2){
+                        if(map[i][j]==map[i+1][j] && map[i+1][j]==map[i+2][j] && map[i+2][j]==map[i+3][j]){
+                            players[count].x=j;
+                            players[count].y=i;
+                            players[count].pontos=0;
+                            count++;
+                            i+=3;
+                        }else{
+                            printf("Malformed player. A player must have length 4.\nExiting...\n\n");
+                            exit(2);
+                        }
+                    }
+                }
+                if(aux==count){
+                    printf("Invalid 'helper' file. Some '8' are in wrong places.\nExiting...\n\n");
+                    exit(2);
+                }else{
+                    break;
+                }
             }
         }
-        if(aux==count){
-            printf("Invalid 'helper' file. Some '8' are in wrong places.\nExiting...\n\n");
-            exit(2);
-        }
-    }
   }
   if(count!=2){
     printf("Invalid 'helper' file. We need 2 players, found %i.\nExiting...\n\n",count);
@@ -246,8 +274,15 @@ void movePlayer(int id, char dir){
 }
 
 void game(){
+  players[0].autoplay = -1;
+  players[1].autoplay = 1;
   players[0].pontos = 0;
   players[1].pontos = 0;
+  printMap();
+  printf("\nPress any key to launch the ball and start game.");
+  fflush(stdin);
+  getche();
+  map[lin/2][col/2]=90; //spawn the first ball
   while(players[0].pontos<10 && players[1].pontos<10){
     if(kbhit()){
         //fflush(stdin);
@@ -255,15 +290,17 @@ void game(){
 	    if(ch=='q') break;
 	    switch(ch)
 	    {
-            /*case UPARROW    :  movePlayer(2,'u');
+            case UPARROW    :  if(players[1].autoplay==-1) movePlayer(1,'u');
                 break;
-            case DOWNARROW  :  movePlayer(2,'d');
-                break;*/
-            case UPARROW2   :  movePlayer(0,'u');
+            case DOWNARROW  :  if(players[1].autoplay==-1) movePlayer(1,'d');
                 break;
-            case DOWNARROW2 :  movePlayer(0,'d');
+            case UPARROW2   :  if(players[0].autoplay==-1) movePlayer(0,'u');
                 break;
-            case 'c' : map[lin/2][col/2]=9; break;
+            case DOWNARROW2 :  if(players[0].autoplay==-1) movePlayer(0,'d');
+                break;
+            case 'c' : map[lin/2][col/2]=90; break;
+            case 'a' : players[0].autoplay*=-1; break;
+            case 'z' : players[1].autoplay*=-1; break;
 	    }//end of switch(ch)
 	    //gameLogic();
 	    //printMap();
