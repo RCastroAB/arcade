@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1497546223 source:c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\main.c
+1497547638 source:c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>

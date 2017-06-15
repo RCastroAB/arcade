@@ -20,7 +20,7 @@
 #define DOWNARROW   '2'
 #define UPARROW2    'w'
 #define DOWNARROW2  's'
-#define centro 11,16
+#define max_points 10
 
 typedef struct v_ball{
     int x,y,moved;
@@ -52,6 +52,7 @@ player players[2];
     void movePlayer(int id, char dir);
     void game();
     void sleepFunc(int i);
+    int wait_input();
 /*end*/
 
 int hitkey(void)
@@ -115,7 +116,7 @@ int raid(){
 
 void printMap(){
     system("@cls||clear");
-    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
+    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
     if(players[0].autoplay==-1){
         printf(" | Player vs ");
     }else{
@@ -162,7 +163,7 @@ void printMap(){
 
 void printNum(){
     system("@cls||clear");
-    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win.\n\n",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
+    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win.\n\n",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
     int i,j;
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++){
@@ -212,10 +213,10 @@ void gameLogic(){
                     break;
                 case 10:
                     printMap();
-                    printf("\nPoint! Press any key to launch another ball.");
-
+                    printf("\nPoint! Press enter to launch another ball.");
+                    wait_input();
                     map[i][j]=8;
-                    map[1+(rand()%(lin-2))][col/2]=90;
+                    if(players[0].pontos<10)map[1+(rand()%(lin-2))][col/2]=90;
                     break;
                 case 70:
                     if(ball.moved!=0) break;
@@ -229,12 +230,6 @@ void gameLogic(){
                     }
                     switch(map[i+ball.y][j+ball.x]){
                         case 8:
-                            /*if((j+ball.x)==players[0].x){
-                                ball.moved=2;
-                                createBall(i);
-                                gameLogic();
-                                break;
-                            }*/
                             map[i][j]=0;
                             map[i+ball.y][j+ball.x]=10;
                             if(j<col/2) players[1].pontos++;
@@ -330,10 +325,11 @@ void game(){
   players[0].pontos = 0;
   players[1].pontos = 0;
   printMap();
-  printf("\nPress any key to launch the ball and start game.");
+  printf("\nPress enter to launch the ball and start game.");
+  fflush(stdin);
   wait_input();
   map[lin/2][col/2]=90; //spawn the first ball
-  while(players[0].pontos<10 && players[1].pontos<10){
+  while(players[0].pontos<max_points && players[1].pontos<max_points){
     if(hitkey()){
 	    ch = getkey();
 	    if(ch=='q') break;
@@ -356,7 +352,7 @@ void game(){
     }
   gameLogic();
   printMap();
-  sleepFunc(10);
+  sleepFunc(300);
   }
 }
 
@@ -382,8 +378,8 @@ int wait_input(){
 	    fflush(stdin);
 	#else
         __fpurge(stdin);
-	    getchar();
     #endif
+    return getkey();
 }
 
 int main()
