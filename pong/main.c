@@ -51,6 +51,7 @@ player players[2];
     void createPlayers();
     void movePlayer(int id, char dir);
     void game();
+    void sleepFunc(int i);
 /*end*/
 
 int hitkey(void)
