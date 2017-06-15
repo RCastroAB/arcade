@@ -140,10 +140,8 @@ void printMap(){
                     printf("   ");
                     break;
                 case 1:
-                    printf("%c%c|",178,178);
-                    break;
                 case 2:
-                    printf("|%c%c",178,178);
+                    printf("|%c|",178);
                     break;
                 case 50:
                     printf(" | ");
@@ -344,7 +342,7 @@ void game(){
                 break;
             case DOWNARROW2 :  if(players[0].autoplay==-1) movePlayer(0,'d');
                 break;
-            case 'c' : map[lin/2][col/2]=90; break;
+            //case 'c' : map[lin/2][col/2]=90; break;
             case 'a' : players[0].autoplay*=-1; break;
             case 'z' : players[1].autoplay*=-1; break;
 	    }//end of switch(ch)
