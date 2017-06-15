@@ -95,7 +95,7 @@ int** alocaMap(){
         exit(1);
     }
     int i=0;
-    for(i=0;i<col;i++){
+    for(i=0;i<lin;i++){
         map[i] = (int *) malloc(col*sizeof(int));
         if(map[i]==NULL || map[i]==0){
             printf("Erro ao alocar memoria\n");
@@ -213,7 +213,7 @@ void gameLogic(){
                 case 10:
                     printMap();
                     printf("\nPoint! Press any key to launch another ball.");
-
+                    wait_input();
                     map[i][j]=8;
                     map[1+(rand()%(lin-2))][col/2]=90;
                     break;
@@ -332,11 +332,10 @@ void game(){
   printMap();
   printf("\nPress any key to launch the ball and start game.");
   fflush(stdin);
-  getkey();
+  wait_input();
   map[lin/2][col/2]=90; //spawn the first ball
   while(players[0].pontos<10 && players[1].pontos<10){
     if(hitkey()){
-        //fflush(stdin);
 	    ch = getkey();
 	    if(ch=='q') break;
 	    switch(ch)
@@ -375,8 +374,17 @@ void sleepFunc(int i)
     #ifdef _WIN32
 	    Sleep(i);
 	#else
-        sleep(i);
+        sleep((float)i/1000);
     #endif
+}
+
+int wait_input(){
+    #ifdef _WIN32
+	    fflush(stdin);
+	#else
+        __fpurge(stdin);
+    #endif
+    return getkey();
 }
 
 int main()
@@ -387,8 +395,7 @@ int main()
         game();
         do{
             printf("\nGame over. Player %i wins!\nPlay again? (y/n) ", (players[0].pontos>=players[1].pontos ? 1 : 2));
-            fflush(stdin);
-            ch = getkey();
+            ch = wait_input();
         }while(ch != 'y' && ch != 'n');
     }while(ch != 'n');
 

@@ -1,9 +1,11 @@
 # depslib dependency file v1.0
-1497542162 source:c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\main.c
+1497546223 source:c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	<time.h>
 	<windows.h>
 	<unistd.h>
+	<termios.h>
+	<fcntl.h>
 
