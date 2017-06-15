@@ -11,6 +11,8 @@
 
 #ifdef linux
     #include <unistd.h>
+    #include <termios.h>
+    #include <fcntl.h>
 #endif
 
 
@@ -31,10 +33,43 @@ typedef struct player{
 
 int col,lin;
 int **map;
-char ch;
 v_ball ball;
 
 player players[2];
+
+
+int hitkey(void)
+{
+	#ifdef _WIN32
+		return kbhit();
+	#else
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    ch = getkey();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    if(ch != EOF)
+    {
+        ungetc(ch, stdin);
+        return 1;
+    }
+
+    return 0;
+	#endif
+}
+
+
 
 int** alocaMap(){
     int** map;
@@ -63,7 +98,7 @@ int raid(){
 }
 
 void printMap(){
-    system("@cls");
+    system("@cls||clear");
     printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
     if(players[0].autoplay==-1){
         printf(" | Player vs ");
@@ -110,7 +145,7 @@ void printMap(){
 }
 
 void printNum(){
-    system("@cls");
+    system("@cls||clear");
     printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win.\n\n",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
     int i,j;
     for(i=0;i<lin;i++){
@@ -162,8 +197,7 @@ void gameLogic(){
                 case 10:
                     printMap();
                     printf("\nPoint! Press any key to launch another ball.");
-                    fflush(stdin);
-                    getche();
+
                     map[i][j]=8;
                     map[1+(rand()%(lin-2))][col/2]=90;
                     break;
@@ -274,6 +308,7 @@ void movePlayer(int id, char dir){
 }
 
 void game(){
+  char ch;
   players[0].autoplay = -1;
   players[1].autoplay = 1;
   players[0].pontos = 0;
@@ -281,12 +316,12 @@ void game(){
   printMap();
   printf("\nPress any key to launch the ball and start game.");
   fflush(stdin);
-  getche();
+  getkey();
   map[lin/2][col/2]=90; //spawn the first ball
   while(players[0].pontos<10 && players[1].pontos<10){
-    if(kbhit()){
+    if(hitkey()){
         //fflush(stdin);
-	    ch = getch();
+	    ch = getkey();
 	    if(ch=='q') break;
 	    switch(ch)
 	    {
@@ -311,15 +346,24 @@ void game(){
   }
 }
 
+int getkey(void){
+    #ifdef _WIN32
+		return getche();
+	#else
+        return getchar();
+	#endif
+}
+
 int main()
 {
     init();
+    char ch;
     do{
         game();
         do{
             printf("\nGame over. Player %i wins!\nPlay again? (y/n) ", (players[0].pontos>=players[1].pontos ? 1 : 2));
             fflush(stdin);
-            ch = getche();
+            ch = getkey();
         }while(ch != 'y' && ch != 'n');
     }while(ch != 'n');
 
