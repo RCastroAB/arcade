@@ -37,6 +37,21 @@ v_ball ball;
 
 player players[2];
 
+/* functions header*/
+    int hitkey(void);
+    int getkey(void);
+    int **alocaMap();
+    int raid();
+    void printMap();
+    void printNum();
+    void createBall(int linha);
+    void init();
+    void gameLogic();
+    void ai(int linha, int coluna, int id);
+    void createPlayers();
+    void movePlayer(int id, char dir);
+    void game();
+/*end*/
 
 int hitkey(void)
 {
@@ -342,7 +357,7 @@ void game(){
     }
   gameLogic();
   printMap();
-  Sleep(1);
+  sleepFunc(10);
   }
 }
 
@@ -352,6 +367,15 @@ int getkey(void){
 	#else
         return getchar();
 	#endif
+}
+
+void sleepFunc(int i)
+{
+    #ifdef _WIN32
+	    Sleep(i);
+	#else
+        sleep(i);
+    #endif
 }
 
 int main()

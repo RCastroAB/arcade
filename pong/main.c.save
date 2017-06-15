@@ -11,6 +11,8 @@
 
 #ifdef linux
     #include <unistd.h>
+    #include <termios.h>
+    #include <fcntl.h>
 #endif
 
 
@@ -35,6 +37,21 @@ v_ball ball;
 
 player players[2];
 
+/* functions header*/
+    int hitkey(void);
+    int getkey(void);
+    int **alocaMap();
+    int raid();
+    void printMap();
+    void printNum();
+    void createBall(int linha);
+    void init();
+    void gameLogic();
+    void ai(int linha, int coluna, int id);
+    void createPlayers();
+    void movePlayer(int id, char dir);
+    void game();
+/*end*/
 
 int hitkey(void)
 {
@@ -96,7 +113,7 @@ int raid(){
 }
 
 void printMap(){
-    system("@cls");
+    system("@cls||clear");
     printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
     if(players[0].autoplay==-1){
         printf(" | Player vs ");
@@ -143,7 +160,7 @@ void printMap(){
 }
 
 void printNum(){
-    system("@cls");
+    system("@cls||clear");
     printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || 10 points to win.\n\n",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos);
     int i,j;
     for(i=0;i<lin;i++){
@@ -319,7 +336,7 @@ void game(){
   while(players[0].pontos<10 && players[1].pontos<10){
     if(hitkey()){
         //fflush(stdin);
-	    ch = getj();
+	    ch = getkey();
 	    if(ch=='q') break;
 	    switch(ch)
 	    {
@@ -350,6 +367,16 @@ int getkey(void){
 	#else
         return getchar();
 	#endif
+}
+
+slee
+void sleepFunc( i)
+{
+    #ifdef _WIN32
+	    Sleep(i);
+	#else
+        sleep(i);
+    #endif
 }
 
 int main()
