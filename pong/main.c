@@ -55,7 +55,16 @@ player players[2];
     void game();
     void sleepFunc(int i);
     int wait_input();
+    void view_log();
+    void log_result();
+    void homescreen();
+    void game_controller();
+    void clearScreen();
 /*end*/
+
+void sera_que_eu_devo_rebater_a_bola(){
+    vou_pegar_a_bola = raid()<70 ? 1 : 0;
+}
 
 int hitkey(void)
 {
@@ -117,17 +126,18 @@ int raid(){
 }
 
 void printMap(){
-    system("@cls||clear");
-    printf("(Loops: %i | Rebatidas: %i | Parede: %i) | Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win",a,b,c,ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
+    clearScreen();
+    printf("Ball direction: (%i, %i) | COM will hit the ball? %i | Loops: %i | Player hits: %i | Wall hits: %i\n",ball.x,ball.y,vou_pegar_a_bola,a,b,c);
+    printf("\n\tPlayer 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win",players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
     if(players[0].autoplay==-1){
         printf(" | Player vs ");
     }else{
         printf(" | COM vs ");
     }
     if(players[1].autoplay==-1){
-        printf("Player mode\n\n");
+        printf("Player mode\n");
     }else{
-        printf("COM mode\n\n");
+        printf("COM mode\n");
     }
     int i,j;
     for(i=0;i<lin;i++){
@@ -164,8 +174,7 @@ void printMap(){
 }
 
 void printNum(){
-    system("@cls||clear");
-    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win.\n\n",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
+    clearScreen();
     int i,j;
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++){
@@ -216,10 +225,10 @@ void gameLogic(){
                 case 10:
                     printMap();
                     printf("\nPoint! Press enter to launch another ball.");
-                    wait_input();
-                    vou_pegar_a_bola = raid()<50 ? 1 : 0;
+                    //wait_input();
+                    sera_que_eu_devo_rebater_a_bola();
                     map[i][j]=8;
-                    if(players[0].pontos<10 && players[1].pontos<10)
+                    if(players[0].pontos<max_points && players[1].pontos<max_points)
                         map[1+(rand()%(lin-2))][col/2]=90;
                     break;
                 case 71:
@@ -236,9 +245,9 @@ void gameLogic(){
                     switch(map[i+ball.y][j+ball.x]){
                         case 8:
                             map[i][j]=0;
-                            map[i+ball.y][j+ball.x]=10;
                             if(j<col/2) players[1].pontos++;
                             else players[0].pontos++;
+                            map[i+ball.y][j+ball.x]=10;
                             //gameLogic();
                             break;
                         case 88:
@@ -257,7 +266,7 @@ void gameLogic(){
                         case 1:
                         case 2:
                             ball.moved=2;
-                            vou_pegar_a_bola = raid()<50 ? 1 : 0;
+                            sera_que_eu_devo_rebater_a_bola();
                             b++;
                         default:
                             createBall(i);
@@ -273,18 +282,24 @@ void gameLogic(){
 
 void ai(int linha, int coluna, int id){
     int r=raid();
-    if(!vou_pegar_a_bola) {
-        movePlayer(id,(r<50 ? 'u' : 'd'));
-        return;
-    }
-    if((id==0 && ball.x==-1)||(id==1 && ball.x==1)){ //Seja inteligente
-        if(linha<players[id].y+1) movePlayer(id,'u');
-        else if(linha>players[id].y+2) movePlayer(id,'d');
+    if(vou_pegar_a_bola) {
+        if((id==0 && ball.x==-1)||(id==1 && ball.x==1)){ //Seja inteligente
+            if(linha<players[id].y+1) movePlayer(id,'u');
+            else if(linha>players[id].y+2) movePlayer(id,'d');
+        }else{
+            if((int)(lin/2)<players[id].y) movePlayer(id,'u');
+            else if((int)(lin/2)>players[id].y+3) movePlayer(id,'d');
+        }
     }else{
-        if((int)(lin/2)<players[id].y) movePlayer(id,'u');
-        else if((int)(lin/2)>players[id].y+3) movePlayer(id,'d');
+        if((id==0 && ball.x==-1)||(id==1 && ball.x==1)){ //Seja inteligente
+            if(linha<players[id].y) movePlayer(id,'u');
+            else if(linha>players[id].y+3) movePlayer(id,'d');
+        }else{
+            if((int)(lin/2)<players[id].y) movePlayer(id,'u');
+            else if((int)(lin/2)>players[id].y+3) movePlayer(id,'d');
+        }
     }
-    //Ou fique parado
+        //Ou fique parado
 }
 
 void createPlayers(){
@@ -377,6 +392,7 @@ void game(){
   printMap();
   sleepFunc(2);
   }
+  //printMap();
 }
 
 int getkey(void){
@@ -405,17 +421,136 @@ int wait_input(){
     return getkey();
 }
 
-int main()
-{
+void game_controller(){
     init();
     char ch;
     do{
         game();
+        log_result();
         do{
             printf("\nGame over. Player %i wins!\nPlay again? (y/n) ", (players[0].pontos>=players[1].pontos ? 1 : 2));
             ch = wait_input();
         }while(ch != 'y' && ch != 'n');
     }while(ch != 'n');
+}
 
+int main()
+{
+    char ch;
+    clearScreen();
+    printf("\n\t\t\t\t\tLoading...\n");
+    sleepFunc(2000);
+    do{
+        clearScreen();
+        homescreen();
+        ch=wait_input();
+        switch(ch){
+            case 's':
+                clearScreen();
+                game_controller();
+                break;
+            case 'l':
+                clearScreen();
+                view_log();
+                break;
+        }
+    }while(ch!='q');
     return 0;
+}
+
+void log_result(){
+    FILE *log;
+    log=fopen("game.log","r");
+    if(log==NULL){
+        log = fopen("game.log","w");
+        fprintf(log,"Game mode,Logic loops,Player hits,Wall hits,Points to win,Player 1,Player 2\n");
+        fclose(log);
+    };
+    log = fopen("game.log","a");
+    fprintf(log,"\n");
+    if(players[0].autoplay==-1){
+        fprintf(log,"Human vs ");
+    }else{
+        fprintf(log,"COM vs ");
+    }
+    if(players[1].autoplay==-1){
+        fprintf(log,"Human");
+    }else{
+        fprintf(log,"COM");
+    }
+    fprintf(log,",%i,%i,%i,%i,%i,%i",a,b,c,max_points,players[0].pontos,players[1].pontos);
+    fclose(log);
+}
+
+void view_log(){
+    printf("\t\t\t\t\t   Matches\n\n");
+    FILE *log;
+    log=fopen("game.log","r");
+    if(log==NULL){
+        printf("No log found. Press [enter] to go back.\n");
+        wait_input();
+        return;
+    }
+    char buf[100];
+    char *token;
+    int linha=0;
+    while(!feof(log)){
+        fgets(buf,100,log);
+        token = strtok(strtok(buf,"\n"),",");
+        printf(" | %-14s",token);
+        token = strtok(NULL,",");
+        printf(" | %-11s",token);
+        token = strtok(NULL,",");
+        printf(" | %-11s",token);
+        token = strtok(NULL,",");
+        printf(" | %-9s",token);
+        token = strtok(NULL,",");
+        printf(" | %-13s",token);
+        token = strtok(NULL,",");
+        printf(" | %-8s",token);
+        token = strtok(NULL,",");
+        printf(" | %-8s |",token);
+        printf("\n");
+        if(linha==0)
+            printf(" |----------------|-------------|-------------|-----------|---------------|----------|----------|\n");
+        linha++;
+    }
+    printf("\n\t\t\t\t   Total logged matches: %i\n\t\t\t\t   Press [enter] to go back.\n",linha-1);
+    fclose(log);
+    wait_input();
+}
+
+
+void homescreen(){
+printf("\n\t8 888888888o       ,o888888o.     b.             8     ,o888888o.    ");
+sleepFunc(20);
+printf("\n\t8 8888    `88.  . 8888     `88.   888o.          8    8888     `88.  ");
+sleepFunc(20);
+printf("\n\t8 8888     `88 ,8 8888       `8b  Y88888o.       8 ,8 8888       `8. ");
+sleepFunc(20);
+printf("\n\t8 8888     ,88 88 8888        `8b .`Y888888o.    8 88 8888           ");
+sleepFunc(20);
+printf("\n\t8 8888.   ,88' 88 8888         88 8o. `Y888888o. 8 88 8888           ");
+sleepFunc(20);
+printf("\n\t8 888888888P'  88 8888         88 8`Y8o. `Y88888o8 88 8888           ");
+sleepFunc(20);
+printf("\n\t8 8888         88 8888        ,8P 8   `Y8o. `Y8888 88 8888   8888888 ");
+sleepFunc(20);
+printf("\n\t8 8888         `8 8888       ,8P  8      `Y8o. `Y8 `8 8888       .8' ");
+sleepFunc(20);
+printf("\n\t8 8888          ` 8888     ,88'   8         `Y8o.`    8888     ,88'  ");
+sleepFunc(20);
+printf("\n\t8 8888             `8888888P'     8            `Yo     `8888888P'    ");
+sleepFunc(500);
+printf("\n\n\t\t\t\t    (S)tart");
+printf("\n\t\t\t\t\(L)og of matches");
+printf("\n\t\t\t\t    (Q)uit\n");
+}
+
+void clearScreen(){
+    #ifdef __WIN32
+        system("@cls");
+    #else
+        system("clear");
+    #endif
 }
