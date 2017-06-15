@@ -35,6 +35,8 @@ int col,lin;
 int **map;
 v_ball ball;
 
+int a,b,c,vou_pegar_a_bola;
+
 player players[2];
 
 /* functions header*/
@@ -116,7 +118,7 @@ int raid(){
 
 void printMap(){
     system("@cls||clear");
-    printf("Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win",ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
+    printf("(Loops: %i | Rebatidas: %i | Parede: %i) | Ball direction: (%i, %i) | Player 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win",a,b,c,ball.x,ball.y,players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
     if(players[0].autoplay==-1){
         printf(" | Player vs ");
     }else{
@@ -136,6 +138,7 @@ void printMap(){
                     printf("%c%c%c",178,178,178);
                     break;
                 case 8:
+                case 88:
                 case 0:
                     printf("   ");
                     break;
@@ -150,6 +153,7 @@ void printMap(){
                 case 70:
                     printf(" o ");
                     break;
+                case 71:
                 case 10:
                     printf("!!!");
                     break;
@@ -174,7 +178,7 @@ void printNum(){
 void createBall(int linha){
     if(ball.moved==2){
         ball.x*=-1;
-    }else if(ball.x==0){
+    }else if(linha!=1 && linha!=lin-2){
         ball.x = raid()<50 ? 1 : -1;
     }
     if(linha==1 || linha==lin-2)
@@ -213,10 +217,12 @@ void gameLogic(){
                     printMap();
                     printf("\nPoint! Press enter to launch another ball.");
                     wait_input();
+                    vou_pegar_a_bola = raid()<50 ? 1 : 0;
                     map[i][j]=8;
                     if(players[0].pontos<10 && players[1].pontos<10)
                         map[1+(rand()%(lin-2))][col/2]=90;
                     break;
+                case 71:
                 case 70:
                     if(ball.moved!=0) break;
                     if(players[0].autoplay==1) ai(i,j,0);
@@ -233,20 +239,32 @@ void gameLogic(){
                             map[i+ball.y][j+ball.x]=10;
                             if(j<col/2) players[1].pontos++;
                             else players[0].pontos++;
-                            gameLogic();
+                            //gameLogic();
+                            break;
+                        case 88:
+                            if(map[i][j]==71) map[i][j]=88;
+                            else map[i][j]=0;
+                            map[i+ball.y][j+ball.x]=71;
+                            printMap();
+                            printf("Debug block (%i,%i)",i+ball.y,j+ball.x);
+                            wait_input();
                             break;
                         case 0:
                             map[i+ball.y][j+ball.x]=70;
-                            map[i][j]=0;
+                            if(map[i][j]==71) map[i][j]=88;
+                            else map[i][j]=0;
                             break;
                         case 1:
                         case 2:
                             ball.moved=2;
+                            vou_pegar_a_bola = raid()<50 ? 1 : 0;
+                            b++;
                         default:
                             createBall(i);
-                            gameLogic();
+                            //gameLogic();
                             break;
                     }
+                    if(map[i+ball.y][j+ball.x]==5) c++;
                     break;
             }
         }
@@ -255,6 +273,10 @@ void gameLogic(){
 
 void ai(int linha, int coluna, int id){
     int r=raid();
+    if(!vou_pegar_a_bola) {
+        movePlayer(id,(r<50 ? 'u' : 'd'));
+        return;
+    }
     if((id==0 && ball.x==-1)||(id==1 && ball.x==1)){ //Seja inteligente
         if(linha<players[id].y+1) movePlayer(id,'u');
         else if(linha>players[id].y+2) movePlayer(id,'d');
@@ -318,8 +340,9 @@ void movePlayer(int id, char dir){
 }
 
 void game(){
+  a=0;b=0;c=0;vou_pegar_a_bola=1;
   char ch;
-  players[0].autoplay = -1;
+  players[0].autoplay = 1;
   players[1].autoplay = 1;
   players[0].pontos = 0;
   players[1].pontos = 0;
@@ -329,6 +352,7 @@ void game(){
   wait_input();
   map[lin/2][col/2]=90; //spawn the first ball
   while(players[0].pontos<max_points && players[1].pontos<max_points){
+    a++;
     if(hitkey()){
 	    ch = getkey();
 	    if(ch=='q') break;
@@ -351,7 +375,7 @@ void game(){
     }
   gameLogic();
   printMap();
-  sleepFunc(20);
+  sleepFunc(2);
   }
 }
 
