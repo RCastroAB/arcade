@@ -52,9 +52,7 @@ void sera_que_eu_devo_rebater_a_bola(){
     vou_pegar_a_bola=1;
 }
 
-
-void printMap(){
-    clearScreen();
+void printHeader(){
     printf("Ball direction: (%i, %i) | COM will hit the ball? %i | Loops: %i | Player hits: %i | Wall hits: %i\n",ball.x,ball.y,vou_pegar_a_bola,a,b,c);
     printf("\n\tPlayer 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win",players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
     if(players[0].autoplay==-1){
@@ -67,6 +65,9 @@ void printMap(){
     }else{
         printf("COM mode\n");
     }
+}
+
+void printMap(){
     int i,j;
     for(i=0;i<lin;i++){
         strcpy(lineBuffer, "");
@@ -106,6 +107,12 @@ void printMap(){
         }
         printf("%s\n",lineBuffer);
     }
+}
+
+void renderGame(){
+    clearScreen();
+    printHeader();
+    printMap();
 }
 
 void printNum(){
@@ -162,7 +169,7 @@ void gameLogic(){
                     map[i][j]=70;
                     break;
                 case 10:
-                    printMap();
+                    renderGame();
                     printf("\nPoint! Press enter to launch another ball.");
                     //wait_input();
                     sera_que_eu_devo_rebater_a_bola();
@@ -193,7 +200,7 @@ void gameLogic(){
                             if(map[i][j]==71) map[i][j]=88;
                             else map[i][j]=0;
                             map[i+ball.y][j+ball.x]=71;
-                            printMap();
+                            renderGame();
                             printf("Debug block (%i,%i)",i+ball.y,j+ball.x);
                             wait_input();
                             break;
@@ -250,6 +257,7 @@ void createPlayers(){
                 for(i=0;i<lin;i++){
                     if(map[i][j]==0){
                         printf("Malformed map. There are 0 on the player movement area. (%i,%i)\nExiting...\n\n",i,j);
+                        wait_input();
                         exit(3);
                     }
                     if(map[i][j]==1 || map[i][j]==2){
@@ -261,12 +269,14 @@ void createPlayers(){
                             i+=3;
                         }else{
                             printf("Malformed player. A player must have length 4.\nExiting...\n\n");
+                            wait_input();
                             exit(2);
                         }
                     }
                 }
                 if(aux==count){
                     printf("Invalid 'helper' file. Some '8' are in wrong places.\nExiting...\n\n");
+                    wait_input();
                     exit(2);
                 }else{
                     break;
@@ -276,6 +286,7 @@ void createPlayers(){
   }
   if(count!=2){
     printf("Invalid 'helper' file. We need 2 players, found %i.\nExiting...\n\n",count);
+    wait_input();
     exit(3);
   }
 }
@@ -300,7 +311,7 @@ void game(){
   players[1].autoplay = 1;
   players[0].pontos = 0;
   players[1].pontos = 0;
-  printMap();
+  renderGame();
   printf("\nPress enter to launch the ball and start game.");
   fflush(stdin);
   wait_input();
@@ -324,14 +335,11 @@ void game(){
             case 'a' : players[0].autoplay*=-1; break;
             case 'z' : players[1].autoplay*=-1; break;
 	    }//end of switch(ch)
-	    //gameLogic();
-	    //printMap();
     }
   gameLogic();
-  printMap();
+  renderGame();
   sleepFunc(40);
   }
-  //printMap();
 }
 
 void game_controller(){
@@ -355,14 +363,18 @@ int main()
     sleepFunc(2000);
     do{
         clearScreen();
-        homescreen();
+        show_file("homescreen",10);
         ch=wait_input();
         switch(ch){
-            case 's':
+            case 'e':
+                clearScreen();
+                editor();
+                break;
+            case 'g':
                 clearScreen();
                 game_controller();
                 break;
-            case 'l':
+            case 's':
                 clearScreen();
                 view_log();
                 break;
@@ -376,7 +388,7 @@ void log_result(){
     log=fopen("game.log","r");
     if(log==NULL){
         log = fopen("game.log","w");
-        fprintf(log,"Game mode,Logic loops,Player hits,Wall hits,Points to win,Player 1,Player 2\n");
+        fprintf(log,"Game mode,Logic loops,Player hits,Wall hits,Points to win,Player 1,Player 2");
         fclose(log);
     };
     log = fopen("game.log","a");
@@ -434,28 +446,27 @@ void view_log(){
 }
 
 
-void homescreen(){
-printf("\n\t8 888888888o       ,o888888o.     b.             8     ,o888888o.    ");
-sleepFunc(20);
-printf("\n\t8 8888    `88.  . 8888     `88.   888o.          8    8888     `88.  ");
-sleepFunc(20);
-printf("\n\t8 8888     `88 ,8 8888       `8b  Y88888o.       8 ,8 8888       `8. ");
-sleepFunc(20);
-printf("\n\t8 8888     ,88 88 8888        `8b .`Y888888o.    8 88 8888           ");
-sleepFunc(20);
-printf("\n\t8 8888.   ,88' 88 8888         88 8o. `Y888888o. 8 88 8888           ");
-sleepFunc(20);
-printf("\n\t8 888888888P'  88 8888         88 8`Y8o. `Y88888o8 88 8888           ");
-sleepFunc(20);
-printf("\n\t8 8888         88 8888        ,8P 8   `Y8o. `Y8888 88 8888   8888888 ");
-sleepFunc(20);
-printf("\n\t8 8888         `8 8888       ,8P  8      `Y8o. `Y8 `8 8888       .8' ");
-sleepFunc(20);
-printf("\n\t8 8888          ` 8888     ,88'   8         `Y8o.`    8888     ,88'  ");
-sleepFunc(20);
-printf("\n\t8 8888             `8888888P'     8            `Yo     `8888888P'    ");
-sleepFunc(500);
-printf("\n\n\t\t\t\t    (S)tart");
-printf("\n\t\t\t\t\(L)og of matches");
-printf("\n\t\t\t\t    (Q)uit\n");
+void show_file(char file[80], int lineDelay){
+    FILE *file_p = fopen(file,"r");
+    if(file_p==NULL){
+        printf("'%s' file not found, maybe the software package is corrupted. Press enter to exit.\n",file);
+        wait_input();
+        exit(3);
+    }
+    char buf[300];
+    while(!feof(file_p)){
+        fgets(buf,300,file_p);
+        printf("\t%s\n",strtok(buf,"\n"));
+        sleepFunc(lineDelay);
+    }
+    fclose(file_p);
+    return;
+}
+
+
+void editor(){
+    init();
+    printMap();
+    printf("\nNot implemented yet. Press [enter] to go back.\n");
+    wait_input();
 }

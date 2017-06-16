@@ -1,11 +1,16 @@
 # depslib dependency file v1.0
-1497566530 source:c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\main.c
+1497642818 source:c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\main.c
+	"multiplatform.h"
+
+1497643694 c:\users\joãogabrieldeoliveir\desktop\aeds\arcade\pong\multiplatform.h
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	<time.h>
 	<windows.h>
+	<conio.h>
 	<unistd.h>
 	<termios.h>
 	<fcntl.h>
+	<curses.h>
 

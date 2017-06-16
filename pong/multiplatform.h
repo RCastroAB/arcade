@@ -5,12 +5,14 @@
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <conio.h>
 #endif
 
 #ifdef linux
     #include <unistd.h>
     #include <termios.h>
     #include <fcntl.h>
+    #include <curses.h>
 #endif
 
 int hitkey(void);
