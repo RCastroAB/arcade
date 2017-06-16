@@ -1,20 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#ifdef _WIN32
-    #include <windows.h>
-    #define DIV 1048576
-    #define WIDTH 7
-#endif
-
-#ifdef linux
-    #include <unistd.h>
-    #include <termios.h>
-    #include <fcntl.h>
-#endif
-
+#include "multiplatform.h"
 
 #define UPARROW     '8'
 #define DOWNARROW   '2'
@@ -33,6 +17,7 @@ typedef struct player{
 
 int col,lin;
 int **map;
+char *lineBuffer;
 v_ball ball;
 
 int a,b,c,vou_pegar_a_bola;
@@ -40,10 +25,6 @@ int a,b,c,vou_pegar_a_bola;
 player players[2];
 
 /* functions header*/
-    int hitkey(void);
-    int getkey(void);
-    int **alocaMap();
-    int raid();
     void printMap();
     void printNum();
     void createBall(int linha);
@@ -53,77 +34,24 @@ player players[2];
     void createPlayers();
     void movePlayer(int id, char dir);
     void game();
-    void sleepFunc(int i);
-    int wait_input();
+    int raid();
     void view_log();
     void log_result();
     void homescreen();
     void game_controller();
-    void clearScreen()
+    void sera_que_eu_devo_rebater_a_bola();
+
 /*end*/
-
-void sera_que_eu_devo_rebater_a_bola(){
-    vou_pegar_a_bola = raid()<70 ? 1 : 0;
-}
-
-int hitkey(void)
-{
-	#ifdef _WIN32
-		return kbhit();
-	#else
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-
-    ch = getkey();
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-    if(ch != EOF)
-    {
-        ungetc(ch, stdin);
-        return 1;
-    }
-
-    return 0;
-	#endif
-}
-
-
-
-int** alocaMap(){
-    int** map;
-    map = (int **) malloc(lin*sizeof(int*));
-    if(map==NULL || map==0){
-        printf("Erro ao alocar memoria\n");
-        exit(1);
-    }
-    int i=0;
-    for(i=0;i<lin;i++){
-        map[i] = (int *) malloc(col*sizeof(int));
-        if(map[i]==NULL || map[i]==0){
-            printf("Erro ao alocar memoria\n");
-            do{
-                free(map[i]);
-            }while(--i>=0);
-            free(map);
-            exit(1);
-        }
-    }
-    return map;
-}
 
 int raid(){
 	return rand() % 100;
 }
+
+void sera_que_eu_devo_rebater_a_bola(){
+    //vou_pegar_a_bola = raid()<70 ? 1 : 0;
+    vou_pegar_a_bola=1;
+}
+
 
 void printMap(){
     clearScreen();
@@ -141,35 +69,43 @@ void printMap(){
     }
     int i,j;
     for(i=0;i<lin;i++){
+        strcpy(lineBuffer, "");
         for(j=0;j<col;j++){
             switch(map[i][j]){
                 case 5:
                     //if(j==0||j=lin-1)
-                    printf("%c%c%c",178,178,178);
+                    //printf("%c%c%c",178,178,178);
+                    char buf[3]={178,178,178};
+                    strcat(lineBuffer, buf);
                     break;
                 case 8:
                 case 88:
                 case 0:
-                    printf("   ");
+                    //printf("   ");
+                    strcat(lineBuffer, "   ");
                     break;
                 case 1:
                 case 2:
-                    printf("|%c|",178);
+                    //printf("|%c|",178);
+                    strcat(lineBuffer, "|▓|");
                     break;
                 case 50:
-                    printf(" | ");
+                    //printf(" | ");
+                    strcat(lineBuffer, " | ");
                     break;
                 case 90:
                 case 70:
-                    printf(" o ");
+                    //printf(" o ");
+                    strcat(lineBuffer, " o ");
                     break;
                 case 71:
                 case 10:
-                    printf("!!!");
+                    //printf("!!!");
+                    strcat(lineBuffer, "!!!");
                     break;
             }
         }
-        printf("\n");
+        printf("%s\n",lineBuffer);
     }
 }
 
@@ -187,7 +123,10 @@ void printNum(){
 void createBall(int linha){
     if(ball.moved==2){
         ball.x*=-1;
-    }else if(linha!=1 && linha!=lin-2){
+    //}else if((linha==1) || (linha==lin-2)){
+    }else if((linha==1 && ball.y==-1) || (linha==lin-2 && ball.y==1)){
+        //nothing;
+    }else{
         ball.x = raid()<50 ? 1 : -1;
     }
     if(linha==1 || linha==lin-2)
@@ -202,7 +141,8 @@ void init(){
     helper = fopen("helper","r");
     int i,j;
     fscanf(helper,"%i %i",&lin,&col);
-    map = alocaMap();
+    lineBuffer = malloc(col*3*sizeof(char));
+    map = alocaMap(lin,col);
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++)
             fscanf(helper,"%i ",&map[i][j]);
@@ -270,7 +210,7 @@ void gameLogic(){
                             b++;
                         default:
                             createBall(i);
-                            //gameLogic();
+                            gameLogic();
                             break;
                     }
                     if(map[i+ball.y][j+ball.x]==5) c++;
@@ -393,32 +333,6 @@ void game(){
   sleepFunc(2);
   }
   //printMap();
-}
-
-int getkey(void){
-    #ifdef _WIN32
-		return getche();
-	#else
-        return getchar();
-	#endif
-}
-
-void sleepFunc(int i)
-{
-    #ifdef _WIN32
-	    Sleep(i);
-	#else
-        sleep((float)i/1000);
-    #endif
-}
-
-int wait_input(){
-    #ifdef _WIN32
-	    fflush(stdin);
-	#else
-        __fpurge(stdin);
-    #endif
-    return getkey();
 }
 
 void game_controller(){
@@ -545,12 +459,4 @@ sleepFunc(500);
 printf("\n\n\t\t\t\t    (S)tart");
 printf("\n\t\t\t\t\(L)og of matches");
 printf("\n\t\t\t\t    (Q)uit\n");
-}
-
-void clearScreen(){
-    #ifdef __WIN32
-        system("@cls");
-    #else
-        system("clear");
-    #endif
 }
