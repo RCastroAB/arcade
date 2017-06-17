@@ -16,8 +16,7 @@ typedef struct player{
 }player;
 
 int col,lin;
-int **map;
-char *lineBuffer;
+int **map,**map2;
 v_ball ball;
 
 int a,b,c,vou_pegar_a_bola;
@@ -43,17 +42,11 @@ player players[2];
 
 /*end*/
 
-int raid(){
-	return rand() % 100;
-}
-
-void sera_que_eu_devo_rebater_a_bola(){
-    //vou_pegar_a_bola = raid()<70 ? 1 : 0;
-    vou_pegar_a_bola=1;
-}
+/** Conio test - works*/
 
 void printHeader(){
-    printf("Ball direction: (%i, %i) | COM will hit the ball? %i | Loops: %i | Player hits: %i | Wall hits: %i\n",ball.x,ball.y,vou_pegar_a_bola,a,b,c);
+    gotoxy(1,1);
+    printf("Ball direction: (%i, %i) | COM will hit the ball? %i | Loops: %i | Player hits: %i | Wall hits: %i          \n",ball.x,ball.y,vou_pegar_a_bola,a,b,c);
     printf("\n\tPlayer 1 (%i,%i): %i | Player 2 (%i,%i): %i || %i points to win",players[0].x,players[0].y,players[0].pontos,players[1].x,players[1].y,players[1].pontos,max_points);
     if(players[0].autoplay==-1){
         printf(" | Player vs ");
@@ -61,75 +54,63 @@ void printHeader(){
         printf(" | COM vs ");
     }
     if(players[1].autoplay==-1){
-        printf("Player mode\n");
+        printf("Player mode           \n");
     }else{
-        printf("COM mode\n");
+        printf("COM mode           \n");
     }
 }
 
 void printMap(){
     int i,j;
     for(i=0;i<lin;i++){
-        strcpy(lineBuffer, "");
         for(j=0;j<col;j++){
-            switch(map[i][j]){
-                case 5:
-                    //if(j==0||j=lin-1)
-                    //printf("%c%c%c",178,178,178);
-                    strcat(lineBuffer, "|||");
-                    break;
-                case 8:
-                case 88:
-                case 0:
-                    //printf("   ");
-                    strcat(lineBuffer, "   ");
-                    break;
-                case 1:
-                case 2:
-                    //printf("|%c|",178);
-                    strcat(lineBuffer, "|-|");
-                    break;
-                case 50:
-                    //printf(" | ");
-                    strcat(lineBuffer, " | ");
-                    break;
-                case 90:
-                case 70:
-                    //printf(" o ");
-                    strcat(lineBuffer, " o ");
-                    break;
-                case 71:
-                case 10:
-                    //printf("!!!");
-                    strcat(lineBuffer, "!!!");
-                    break;
+            if(map[i][j]!=map2[i][j]){
+                map2[i][j]=map[i][j];
+                gotoxy(1+(j*3),4+i);
+                switch(map[i][j]){
+                    case 5:
+                        printf("%c%c%c",178,178,178);
+                        break;
+                    case 8:
+                    case 88:
+                    case 0:
+                        printf("   ");
+                        break;
+                    case 1:
+                    case 2:
+                        printf("|-|");
+                        break;
+                    case 50:
+                        printf(" %c ",178);
+                        break;
+                    case 90:
+                    case 70:
+                        printf(" o ");
+                        break;
+                    case 71:
+                    case 10:
+                        printf("!!!");
+                        break;
+                }
             }
         }
-        printf("%s\n",lineBuffer);
     }
+}
+
+/** End*/
+
+void sera_que_eu_devo_rebater_a_bola(){
+    vou_pegar_a_bola = raid()<60 ? 1 : 0;
 }
 
 void renderGame(){
-    clearScreen();
     printHeader();
     printMap();
-}
-
-void printNum(){
-    clearScreen();
-    int i,j;
-    for(i=0;i<lin;i++){
-        for(j=0;j<col;j++){
-            printf(" %i ",map[i][j]);
-        }
-        printf("\n");
-    }
 }
 
 void createBall(int linha){
     if(ball.moved==2){
         ball.x*=-1;
-    //}else if((linha==1) || (linha==lin-2)){
     }else if((linha==1 && ball.y==-1) || (linha==lin-2 && ball.y==1)){
         //nothing;
     }else{
@@ -147,8 +128,8 @@ void init(){
     helper = fopen("helper","r");
     int i,j;
     fscanf(helper,"%i %i",&lin,&col);
-    lineBuffer = malloc(col*3*sizeof(char));
     map = alocaMap(lin,col);
+    map2 = alocaMap(lin,col);
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++)
             fscanf(helper,"%i ",&map[i][j]);
@@ -170,8 +151,11 @@ void gameLogic(){
                     break;
                 case 10:
                     renderGame();
-                    printf("\nPoint! Press enter to launch another ball.");
-                    //wait_input();
+                    gotoxy(col,lin+4);
+                    printf("\nPoint! Press [enter] to launch another ball.                          ");
+                    wait_input();
+                    gotoxy(col,lin+4);
+                    printf("\n                                           ");
                     sera_que_eu_devo_rebater_a_bola();
                     map[i][j]=8;
                     if(players[0].pontos<max_points && players[1].pontos<max_points)
@@ -201,8 +185,11 @@ void gameLogic(){
                             else map[i][j]=0;
                             map[i+ball.y][j+ball.x]=71;
                             renderGame();
-                            printf("Debug block (%i,%i)",i+ball.y,j+ball.x);
+                            gotoxy(col,lin+4);
+                            printf("Debug block (%i,%i)                                         ",i+ball.y,j+ball.x);
                             wait_input();
+                            gotoxy(col,lin+4);
+                            printf("                    ",i+ball.y,j+ball.x);
                             break;
                         case 0:
                             map[i+ball.y][j+ball.x]=70;
@@ -312,15 +299,24 @@ void game(){
   players[0].pontos = 0;
   players[1].pontos = 0;
   renderGame();
-  printf("\nPress enter to launch the ball and start game.");
-  fflush(stdin);
+  gotoxy(col, lin+4);
+  printf("\nPress [enter] to launch the ball and start game.                    ");
   wait_input();
+  gotoxy(col, lin+4);
+  printf("\n                                                ");
   map[lin/2][col/2]=90; //spawn the first ball
   while(players[0].pontos<max_points && players[1].pontos<max_points){
     a++;
     if(hitkey()){
 	    ch = getkey();
-	    if(ch=='q') break;
+	    if(ch=='q'){
+            //exclui a bolinha da tela
+            int i,j;
+            for(i=0;i<lin;i++)
+                for(j=0;j<col;j++)
+                    if(map[i][j]==70) map[i][j]=0;
+            break;
+        }
 	    switch(ch)
 	    {
             case UPARROW    :  if(players[1].autoplay==-1) movePlayer(1,'u');
@@ -338,32 +334,39 @@ void game(){
     }
   gameLogic();
   renderGame();
-  sleepFunc(40);
+  delay(40);
   }
 }
 
 void game_controller(){
     init();
+    clearScreen();
     char ch;
     do{
         game();
         log_result();
         do{
-            printf("\nGame over. Player %i wins!\nPlay again? (y/n) ", (players[0].pontos>=players[1].pontos ? 1 : 2));
+            gotoxy(col,lin+4);
+            printf("\nGame over. Player %i wins!                   \nPlay again? (y/n)                                ", (players[0].pontos>=players[1].pontos ? 1 : 2));
             ch = wait_input();
+            gotoxy(col,lin+4);
+            printf("\n                           \n                   ", (players[0].pontos>=players[1].pontos ? 1 : 2));
         }while(ch != 'y' && ch != 'n');
     }while(ch != 'n');
 }
 
 int main()
 {
+    #ifndef __WIN32
+        initconio();
+    #endif // linux
     char ch;
     clearScreen();
     printf("\n\t\t\t\t\tLoading...\n");
-    sleepFunc(2000);
+    //delay(2000);
     do{
         clearScreen();
-        show_file("homescreen",10);
+        show_file("homescreen",5);
         ch=wait_input();
         switch(ch){
             case 'e':
@@ -380,6 +383,9 @@ int main()
                 break;
         }
     }while(ch!='q');
+    #ifndef __WIN32
+        endconio();
+    #endif // linux
     return 0;
 }
 
@@ -439,6 +445,7 @@ void view_log(){
         if(linha==0)
             printf(" |----------------|-------------|-------------|-----------|---------------|----------|----------|\n");
         linha++;
+        delay(5);
     }
     printf("\n\t\t\t\t   Total logged matches: %i\n\t\t\t\t   Press [enter] to go back.\n",linha-1);
     fclose(log);
@@ -449,7 +456,7 @@ void view_log(){
 void show_file(char file[80], int lineDelay){
     FILE *file_p = fopen(file,"r");
     if(file_p==NULL){
-        printf("'%s' file not found, maybe the software package is corrupted. Press enter to exit.\n",file);
+        printf("'%s' file not found, maybe the software package is corrupted. Press [enter] to exit.\n",file);
         wait_input();
         exit(3);
     }
@@ -457,7 +464,7 @@ void show_file(char file[80], int lineDelay){
     while(!feof(file_p)){
         fgets(buf,300,file_p);
         printf("\t%s\n",strtok(buf,"\n"));
-        sleepFunc(lineDelay);
+        delay(lineDelay);
     }
     fclose(file_p);
     return;
