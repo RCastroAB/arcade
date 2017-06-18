@@ -40,7 +40,8 @@ player players[2];
     void homescreen();
     void game_controller();
     void sera_que_eu_devo_rebater_a_bola();
-
+    void show_file(char *file, int lineDelay);
+    void editor();
 /*end*/
 
 int raid(){
@@ -307,7 +308,7 @@ void movePlayer(int id, char dir){
 void game(){
   a=0;b=0;c=0;vou_pegar_a_bola=1;
   char ch;
-  players[0].autoplay = 1;
+  players[0].autoplay = -1;
   players[1].autoplay = 1;
   players[0].pontos = 0;
   players[1].pontos = 0;
@@ -336,9 +337,9 @@ void game(){
             case 'z' : players[1].autoplay*=-1; break;
 	    }//end of switch(ch)
     }
-  gameLogic();
-  renderGame();
-  sleepFunc(40);
+    gameLogic();
+    renderGame();
+    sleepFunc(40);
   }
 }
 

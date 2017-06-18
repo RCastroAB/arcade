@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -94,9 +95,9 @@ void freeMap(int** mapa, int lin){
 void sleepFunc(int i)
 {
     #ifdef _WIN32
-	    Sleep(i);
+		Sleep(i);
 	#else
-        sleep((float)i/1000);
+		usleep((unsigned int)i*1000);
     #endif
 }
 
