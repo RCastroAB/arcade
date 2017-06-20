@@ -3,6 +3,13 @@
 #define LEFTARROW 'a'
 #define RIGHTARROW 'd'
 #define SHOOT ' '
+#define MAXBULLETS 3
+#define LIVES 5
+#define ALIENMAXBULLETS 100
+
+
+#define BULLET 7 //numeric coding for map
+#define ENEMYBULLET 6
 
 typedef struct starship{
     int x,y;
@@ -12,11 +19,13 @@ typedef struct starship{
 
 typedef struct player_bullet{
     int x,y;
+    char active;//if the bullet is or not in the map
     starship *shooter;
 } player_bullet;
 
 typedef struct alien{
     int x,y;
+    int alive;
     int shoot_counter;
     int chance_to_shoot;
     int evil_level;
@@ -24,21 +33,33 @@ typedef struct alien{
 
 typedef struct alien_bullet{
     int x, y;
+    char active;//if the bullet is or not in the map
     alien *shooter;
 } alien_bullet;
 
+
+//Global Variables
 int col,lin;
 int **map,**map2;
 int ticks;
 char *lineBuffer;
-int score,alien_num=2,total_aliens=2, lives=2;
-float alien_speed;
-starship player;
 
+int score,alien_num,total_aliens, lives;
+
+starship player;
+player_bullet bullets[MAXBULLETS];
+
+
+alien * enemies = NULL;
+float alien_speed, alien_move;
+char move_dir;
+alien_bullet enemy_bullets[ALIENMAXBULLETS];
 //Headers
 
 void game_controller();
 void init();
+void createBullets();
+void createAliens();
 void createPlayer();
 
 void game();
@@ -50,6 +71,8 @@ void printMap();
 void gameLogic();
 void movePlayer(char dir);
 void player_shoot();
+void forceGameOver();
+void killPlayer();
 
 
 /*          MAIN          */
@@ -58,6 +81,8 @@ int main(){
     //     initconio();
     // #endif // linux
     game_controller();
+    clearScreen();
+
     //
     // #ifndef __WIN32
     //     endconio();
@@ -74,9 +99,10 @@ void game_controller(){
     lineBuffer = (char *)calloc(col*3,sizeof(char));
     char ch;
     do{
+        init();
         game();
         do{
-            printf("\nGame over.\nPlay again? (y/n)                                ");
+            printf("\nGame over.\nPlay again? (y/n)");
 
             ch = wait_input();
             printf("\n                           \n                   ");
@@ -90,17 +116,60 @@ void init(){
     FILE *helper=NULL;
     helper = fopen("helper","r");
     int i,j;
-    fscanf(helper,"%i %i",&lin,&col);
+    fscanf(helper,"%i %i %i",&lin,&col, &total_aliens);
     map = alocaMap(lin,col);
     map2 = alocaMap(lin,col);
     for(i=0;i<lin;i++){
-        for(j=0;j<col;j++)
+        for(j=0;j<col;j++){
             fscanf(helper,"%i ",&map[i][j]);
+        }
     }
     fclose(helper);
+    score =0;
+    alien_speed = 0.001;
+    createAliens();
+    createBullets();
     createPlayer();
 }
 
+void createAliens(){
+    int i, j, k=0;
+    if ((enemies = (alien *)malloc(total_aliens*sizeof(alien))) == NULL){
+        printf("error\n");
+        exit(1);
+    }
+    alien_num =0;
+    for(j=0;j<col;j++){
+        for(i=0;i<lin;i++){
+            if(map[i][j]>60 && map[i][j]<66){//alien found
+                enemies[k].x = j;
+                enemies[k].y = i;
+                enemies[k].alive =1;
+                enemies[k].evil_level = map[i][j] - 60;
+                enemies[k].shoot_counter = 100 - (enemies[k].evil_level *10);
+                enemies[k].chance_to_shoot = 20 * enemies[k].evil_level;
+                alien_num++;
+                k++;
+            }
+        }
+    }
+    if (alien_num != total_aliens){
+        printf("map disagrees with parameters on number of aliens (%i , %i)\n", total_aliens, alien_num);
+        exit(1);
+    }
+    move_dir = 'd';
+}
+
+void createBullets() {
+    int i;
+    for(i=0;i<MAXBULLETS;i++){
+        bullets[i].active =0;
+    }
+    for(i=0;i<ALIENMAXBULLETS;i++){
+        enemy_bullets[i].active =0;
+    }
+    return;
+}
 void createPlayer(){
   int i,j,count=0,aux;
   for(j=0;j<col;j++){
@@ -113,8 +182,11 @@ void createPlayer(){
                         wait_input();
                         exit(3);
                     } else if(map[i][j]==1){
+                        lives = LIVES;
                         player.x=j;
-                        player.remain_bullets = 3;
+                        player.y=i;
+                        player.remain_bullets = MAXBULLETS;
+                        player.respawn = 0;
                         count++;
                     }
                 }
@@ -144,13 +216,13 @@ void game(){
 	    ch = getkey();
 	    switch(ch)
 	    {
-            case LEFTARROW    :
+            case LEFTARROW:
                 movePlayer('l');
                 break;
-            case RIGHTARROW  :
+            case RIGHTARROW:
                 movePlayer('r');
                 break;
-            case SHOOT   :
+            case SHOOT:
                 player_shoot();
                 break;
             //case 'c' : map[lin/2][col/2]=90; break;
@@ -160,6 +232,7 @@ void game(){
     renderGame();
     delay(40);
   }
+  free(enemies);
 }
 
 /*      RENDER        */
@@ -172,11 +245,11 @@ void renderGame(){
 }
 
 void printHeader(){
-    printf("Score: %i | Remaining Aliens %i | Killed Aliens: %i | Lives: %i          \n",score,alien_num,total_aliens-alien_num,lives);
+    printf("Score: %i | Remaining Aliens %i | Killed Aliens: %i | Lives: %i | Bullets: %i         \n",score,alien_num,total_aliens-alien_num,lives, player.remain_bullets);
 
     return;
 }
-
+int maxr, maxl;
 
 
 void printMap(){
@@ -200,143 +273,217 @@ void printMap(){
                     //printf("|%c|",178);
                     strcat(lineBuffer, "/^\\");
                     break;
-                case 50:
+                case 61:
                     //printf(" | ");
-                    strcat(lineBuffer, " | ");
+                    strcat(lineBuffer, ")-(");
                     break;
-                case 90:
-                case 70:
+                case 62:
+                    //printf(" | ");
+                    strcat(lineBuffer, "}W{");
+                    break;
+                case 63:
+                    //printf(" | ");
+                    strcat(lineBuffer, "w0w");
+                    break;
+                case 64:
+                    //printf(" | ");
+                    strcat(lineBuffer, "|0|");
+                    break;
+                case 65:
+                    //printf(" | ");
+                    strcat(lineBuffer, "/=\\");
+                    break;
+                case 6:
+                    strcat(lineBuffer, " + ");
+                    break;
+                case 7:
                     //printf(" o ");
-                    strcat(lineBuffer, " o ");
+                    strcat(lineBuffer, " * ");
                     break;
+                    case 10:
                 case 71:
-                case 10:
                     //printf("!!!");
                     strcat(lineBuffer, "!!!");
                     break;
             }
-        }
-        printf("%s\n",lineBuffer);
+        } printf("%s\n",lineBuffer);
     }
-}
 
-// void printMap(){
-//     int i,j;
-//     for(i=0;i<lin;i++){
-//         for(j=0;j<col;j++){
-//             //if(map[i][j]!=map2[i][j]){
-//             //    map2[i][j]=map[i][j];
-//             switch(map[i][j]){
-//                 case 5:
-//                     printf("%c%c%c",178,178,178);
-//
-//                     break;
-//                 case 8:
-//                 case 88:
-//                 case 0:
-//                     printf("   ");
-//
-//                     break;
-//                 case 1:
-//                     printf("/^\\");
-//
-//                     break;
-//                 case 50:
-//                     printf(" %c ",178);
-//
-//                     break;
-//                 case 90:
-//                 case 70:
-//                     printf(" o ");
-//
-//                     break;
-//             //}
-//             }
-//             printf("\n");
-//         }
-//     }
-// }
+}
 
 
 /*      LOGIC       */
 
 
-void gameLogic(){
+void gameLogic(){//dividio em partes
     int i,j;
-    for(i=0;i<lin;i++){
-        for(j=0;j<col;j++){
-            switch(map[i][j]){
-                case 90:
-                    map[i][j]=70;
-                    break;
-                /*case 10:
-                    renderGame();
-                    printf("\nPoint! Press [enter] to launch another ball.                          ");
-                    wait_input();
-                    printf("\n                                           ");
-                    sera_que_eu_devo_rebater_a_bola();
-                    map[i][j]=8;
-                    if(players[0].pontos<max_points && players[1].pontos<max_points)
-                        map[1+(rand()%(lin-2))][col/2]=90;
-                    break;
-                case 71:
-                case 70:
-                    if(ball.moved!=0) break;
-                    if(players[0].autoplay==1) ai(i,j,0);
-                    if(players[1].autoplay==1) ai(i,j,1);
-                    ball.moved=1;
-                    if(i+ball.y>lin || i+ball.y<0 || j+ball.x>col || j+ball.y<0){
-                        createBall(i);
-                        gameLogic();
-                        break;
-                    }
-                    switch(map[i+ball.y][j+ball.x]){
-                        case 8:
-                            map[i][j]=0;
-                            if(j<col/2) players[1].pontos++;
-                            else players[0].pontos++;
-                            map[i+ball.y][j+ball.x]=10;
-                            //gameLogic();
-                            break;
-                        case 88:
-                            if(map[i][j]==71) map[i][j]=88;
-                            else map[i][j]=0;
-                            map[i+ball.y][j+ball.x]=71;
-                            renderGame();
-                            printf("Debug block (%i,%i)                                         ",i+ball.y,j+ball.x);
-                            wait_input();
-                            printf("                    ",i+ball.y,j+ball.x);
-                            break;
-                        case 0:
-                            map[i+ball.y][j+ball.x]=70;
-                            if(map[i][j]==71) map[i][j]=88;
-                            else map[i][j]=0;
-                            break;
-                        case 1:
-                        case 2:
-                            ball.moved=2;
-                            sera_que_eu_devo_rebater_a_bola();
-                            b++;
-                        default:
-                            createBall(i);
-                            gameLogic();
-                            break;
-                    }
-                    if(map[i+ball.y][j+ball.x]==5) c++;*/
-                    break;
+    /* PLAYER_BULLETS  */
+    for(i = 0; i < MAXBULLETS; i++){
+        if(bullets[i].active){
+            map[bullets[i].y][bullets[i].x] = 0;
+            switch(map[bullets[i].y-1][bullets[i].x]){
+                case 61:
+                case 62:
+                case 63:
+                case 64:
+                case 65:
+                case 0:
+                    map[bullets[i].y-1][bullets[i].x] = BULLET;
+                    bullets[i].y--;
+                break;
+                case 5:
+                    bullets[i].y = 0;
+                    bullets[i].x = 0;
+                    bullets[i].active = 0;
+                    player.remain_bullets++;
+                break;
             }
         }
     }
+
+    /* ALIEN BULLETS */
+
+    for(i = 0; i < MAXBULLETS; i++){
+        if(enemy_bullets[i].active){
+            map[enemy_bullets[i].y][enemy_bullets[i].x] = 0;
+            switch(map[enemy_bullets[i].y+1][enemy_bullets[i].x]){
+                case 1:
+                case 0:
+                    map[enemy_bullets[i].y+1][enemy_bullets[i].x] = ENEMYBULLET;
+                    enemy_bullets[i].y++;
+                    break;
+                case 5:
+                    enemy_bullets[i].y = 0;
+                    enemy_bullets[i].x = 0;
+                    enemy_bullets[i].active = 0;
+                    break;
+                default:
+                    enemy_bullets[i].y++;
+                break;
+
+            }
+        }
+    }
+
+    /* PLAYER */
+    if (player.respawn == 0){
+        switch(map[player.y][player.x]){
+            case 0:
+            case 8:
+                map[player.y][player.x] = 1;
+                break;
+            case 61:    //if alien or
+            case 62:
+            case 63:
+            case 64:
+            case 65:
+                forceGameOver();
+                break;
+            case 6:     //bullet
+                killPlayer();
+                break;
+        }
+    } else {
+        map[player.y][player.x] = 8;
+        player.respawn--;
+    }
+    /* ALIEN */
+    alien_move+=alien_speed;
+    int maxleft = col, maxright = 0;
+
+    if (alien_move >= 1){ //MOVEMENT
+        alien_move =0;
+        if (move_dir == 'r'){
+            for(i=0;i<total_aliens;i++){
+                if (enemies[i].alive){
+                    map[enemies[i].y][enemies[i].x] = 0;
+                    if (enemies[i].x == col-3) move_dir = 'd';
+                    enemies[i].x++;
+                }
+            }
+        } else if(move_dir == 'l'){
+            for(i=0;i<total_aliens;i++){
+                if (enemies[i].alive){
+                    map[enemies[i].y][enemies[i].x] = 0;
+                    if (enemies[i].x == 2) move_dir = 'd';
+                    enemies[i].x--;
+                }
+            }
+        } else {
+            alien_speed+=0.001;
+            for(i=0;i<total_aliens;i++){//procura a parede para evitar
+                if (enemies[i].alive){
+                    map[enemies[i].y][enemies[i].x] = 0;
+                    maxleft = maxleft < enemies[i].x ? maxleft : enemies[i].x;
+                    maxright = maxright > enemies[i].x ?  maxright : enemies[i].x;
+                    enemies[i].y++;
+                }
+            }
+            if (maxleft>2){
+                move_dir ='l';
+            } else if(maxright < col-2){
+                move_dir ='r';
+            } else move_dir = 'd';
+
+        }
+
+    }
+
+    //DIE N' SHOOT
+    for(i=0;i<total_aliens;i++){
+        if (enemies[i].alive){
+            switch(map[enemies[i].y][enemies[i].x]){
+                case 0:
+                case 6:
+                    map[enemies[i].y][enemies[i].x] = 60 + enemies[i].evil_level;
+                    break;
+                case 7:
+                    enemies[i].alive = 0;
+                    score+= enemies[i].evil_level*10;
+                    for(j=0; j<MAXBULLETS;j++){
+                        if(bullets[j].x == enemies[i].x && bullets[j].y == enemies[i].y){
+                            bullets[j].active = 0;
+                            player.remain_bullets++;
+                            break;
+                        }
+                    }
+                    alien_num--;
+                    alien_speed+= enemies[i].evil_level/1000.0;
+                    map[enemies[i].y][enemies[i].x] = 0;
+                    break;
+                case 8:
+                    forceGameOver();
+                    break;
+            }
+            if (enemies[i].shoot_counter==0 ){
+                if (RollDice() < enemies[i].chance_to_shoot){
+                    for(j=0;j<ALIENMAXBULLETS;j++){
+                        if (enemy_bullets[j].active == 0) break;
+                    }
+                    enemy_bullets[j].active = 1;
+                    enemy_bullets[j].x = enemies[i].x;
+                    enemy_bullets[j].y = enemies[i].y;
+                }
+                enemies[i].shoot_counter = 100 - (enemies[i].evil_level *10);
+
+            } else{
+                enemies[i].shoot_counter--;
+            }
+        }
+    }
+
+    ticks++;
+    return;
 }
 
 
 void movePlayer(char dir){
-    if(dir=='l' && player.x-1>=0){
+    if(dir=='l' && player.x>1){
         map[player.y][player.x]=8;
         player.x--;
         map[player.y][player.x]=1;
     }
-    else if(dir=='r' && player.x<col){
+    else if(dir=='r' && player.x<col-2){
         map[player.y][player.x]=8;
         player.x++;
         map[player.y][player.x]=1;
@@ -344,8 +491,30 @@ void movePlayer(char dir){
 }
 
 void player_shoot(){
-    player_bullet bull;
-    bull.x = player.x;
-    bull.y = player.y;
-    bull.shooter = &player;
+    if (player.remain_bullets == 0 || player.respawn >0 ){
+        return;
+    }
+    int i;
+    for (i=0; i < MAXBULLETS; i++){
+        if (bullets[i].active == 0){
+            bullets[i].x = player.x;
+            bullets[i].y = player.y;
+            bullets[i].shooter = &player;
+            player.remain_bullets--;
+            bullets[i].active = 1;
+            return;
+        }
+    }
+    printf("error\n");
+    exit(1);
+
+}
+
+void killPlayer(){
+    player.respawn = 20;
+    lives--;
+}
+
+void forceGameOver(){
+    lives =0;
 }

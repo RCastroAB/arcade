@@ -27,6 +27,11 @@ void clearScreen();
 
 
 //Function Definitions
+
+int RollDice(){
+    return rand()%100;
+}
+
 int hitkey(void)
 {
 	#ifdef _WIN32
@@ -58,9 +63,14 @@ int hitkey(void)
 	#endif
 }
 
-int getkey(void){
-    return getch();
+int getkey(){
+    #ifdef _WIN32
+        return getche();
+    #else
+        return getchar();
+    #endif
 }
+
 
 int** alocaMap(int lin, int col){
     int** mapa;
