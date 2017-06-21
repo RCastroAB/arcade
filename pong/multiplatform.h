@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "multiconio.h"
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <conio.h>
 #endif
 
 #ifdef linux
@@ -22,6 +22,7 @@ void freeMap(int **mapa, int lin);
 void delay(int i);
 int wait_input();
 void clearScreen();
+void show_file(char *file, int lineDelay);
 
 int raid(){
 	return rand() % 100;
@@ -59,7 +60,19 @@ int hitkey(void)
 }
 
 int getkey(void){
-    return getch();
+	#ifdef __WIN32
+	    return getch();
+	#else
+		struct termios oldattr, newattr;
+	    int ch;
+	    tcgetattr( STDIN_FILENO, &oldattr );
+	    newattr = oldattr;
+	    newattr.c_lflag &= ~( ICANON | ECHO );
+	    tcsetattr( STDIN_FILENO, TCSANOW, &newattr );
+	    ch = getchar();
+    	tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
+	    return ch;
+	#endif
 }
 
 int** alocaMap(int lin, int col){
@@ -115,4 +128,21 @@ void clearScreen(){
     #else
         system("clear");
     #endif
+}
+
+void show_file(char file[80], int lineDelay){
+    FILE *file_p = fopen(file,"r");
+    if(file_p==NULL){
+        printf("'%s' file not found, maybe the software package is corrupted.\nExiting...\n",file);
+        wait_input();
+        exit(3);
+    }
+    char buf[300];
+    while(!feof(file_p)){
+        fgets(buf,300,file_p);
+        printf("\t%s\n",strtok(buf,"\n"));
+        delay(lineDelay);
+    }
+    fclose(file_p);
+    return;
 }
