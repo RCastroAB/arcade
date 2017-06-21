@@ -3,26 +3,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "multiconio.h"
 
 #ifdef _WIN32
     #include <windows.h>
-    #include <conio.h>
 #endif
 
 #ifdef linux
     #include <unistd.h>
     #include <termios.h>
     #include <fcntl.h>
-    #include <curses.h>
 #endif
 
 int hitkey(void);
 int getkey(void);
 int **alocaMap(int lin, int col);
 void freeMap(int **mapa, int lin);
-void sleepFunc(int i);
+void delay(int i);
 int wait_input();
 void clearScreen();
+
+int raid(){
+	return rand() % 100;
+}
 
 int hitkey(void)
 {
@@ -56,23 +59,19 @@ int hitkey(void)
 }
 
 int getkey(void){
-    #ifdef _WIN32
-		return getche();
-	#else
-        return getchar();
-	#endif
+    return getch();
 }
 
 int** alocaMap(int lin, int col){
     int** mapa;
-    mapa = (int **) malloc(lin*sizeof(int*));
+    mapa = (int **) calloc(lin,sizeof(int*));
     if(mapa==NULL || mapa==0){
         printf("Erro ao alocar memoria\n");
         exit(1);
     }
     int i=0;
     for(i=0;i<lin;i++){
-        mapa[i] = (int *) malloc(col*sizeof(int));
+        mapa[i] = (int *) calloc(col,sizeof(int));
         if(mapa[i]==NULL || mapa[i]==0){
             printf("Erro ao alocar memoria\n");
             do{
@@ -92,7 +91,7 @@ void freeMap(int** mapa, int lin){
     free(mapa);
 }
 
-void sleepFunc(int i)
+void delay(int i)
 {
     #ifdef _WIN32
 		Sleep(i);
