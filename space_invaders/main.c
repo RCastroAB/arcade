@@ -44,7 +44,7 @@ int **map,**map2;
 int ticks;
 char *lineBuffer;
 
-int score,alien_num,total_aliens, lives;
+int win, score,alien_num,total_aliens, lives;
 
 starship player;
 player_bullet bullets[MAXBULLETS];
@@ -114,7 +114,7 @@ void game_controller(){
         init();
         game();
         do{
-            printf("\nGame over.\nPlay again? (y/n)");
+            printf("\n%s.\nPlay again? (y/n)", win ? "You Win" : "Game Over");
 
             ch = wait_input();
             printf("\n                           \n                   ");
@@ -139,6 +139,7 @@ void init(){
     fclose(helper);
     score =0;
     alien_speed = 0.001;
+    win = 0;
     createAliens();
     createBullets();
     createPlayer();
@@ -244,6 +245,7 @@ void game(){
     renderGame();
     delay(40);
   }
+  if (alien_num == 0) win =1;
   free(enemies);
 }
 
@@ -463,6 +465,7 @@ void gameLogic(){//dividio em partes
                     alien_speed+= enemies[i].evil_level/1000.0;
                     map[enemies[i].y][enemies[i].x] = 0;
                     break;
+		case 1:
                 case 8:
                     forceGameOver();
                     break;
