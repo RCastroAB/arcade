@@ -24,6 +24,7 @@ void freeMap(int **mapa, int lin);
 void delay(int i);
 int wait_input();
 void clearScreen();
+void show_file(char file[80], int lineDelay);
 
 
 //Function Definitions
@@ -130,4 +131,21 @@ void clearScreen(){
 void delay(int i)
 {
     sleepFunc(i);
+}
+
+void show_file(char file[80], int lineDelay){
+    FILE *file_p = fopen(file,"r");
+    if(file_p==NULL){
+        printf("'%s' file not found, maybe the software package is corrupted. Press [enter] to exit.\n",file);
+        wait_input();
+        exit(3);
+    }
+    char buf[300];
+    while(!feof(file_p)){
+        fgets(buf,300,file_p);
+        printf("\t%s\n",strtok(buf,"\n"));
+        delay(lineDelay);
+    }
+    fclose(file_p);
+    return;
 }

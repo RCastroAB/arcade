@@ -80,8 +80,20 @@ int main(){
     // #ifndef __WIN32
     //     initconio();
     // #endif // linux
-    game_controller();
+    char ch;
     clearScreen();
+    printf("\n\t\t\t\t\tLoading...\n");
+    //delay(2000);
+    do{
+        clearScreen();
+        show_file("homescreen",5);
+        ch=wait_input();
+        switch(ch){
+            case 'g':
+                clearScreen();
+                game_controller();
+                break;        }
+    }while(ch!='q');
 
     //
     // #ifndef __WIN32
