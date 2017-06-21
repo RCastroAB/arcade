@@ -83,7 +83,7 @@ int main(){
     char ch;
     clearScreen();
     printf("\n\t\t\t\t\tLoading...\n");
-    //delay(2000);
+    delay(2000);
     do{
         clearScreen();
         show_file("homescreen",5);
