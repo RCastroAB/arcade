@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdio_ext.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -61,7 +60,7 @@ int hitkey(void)
 
 int getkey(void){
 	#ifdef __WIN32
-	    return getch();
+	    return tolower(getch());
 	#else
 		struct termios oldattr, newattr;
 	    int ch;
@@ -71,7 +70,7 @@ int getkey(void){
 	    tcsetattr( STDIN_FILENO, TCSANOW, &newattr );
 	    ch = getchar();
     	tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
-	    return ch;
+	    return tolower(ch);
 	#endif
 }
 
@@ -119,7 +118,7 @@ int wait_input(){
 	#else
         __fpurge(stdin);
     #endif
-    return getkey();
+    return tolower(getkey());
 }
 
 void clearScreen(){
