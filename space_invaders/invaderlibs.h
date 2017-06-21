@@ -25,9 +25,15 @@ void delay(int i);
 int wait_input();
 void clearScreen();
 void show_file(char file[80], int lineDelay);
+char toUpper(char c);
 
 
 //Function Definitions
+
+char toUpper(char c){
+    if(c < 'a' || c > 'z') return c;
+    return c - 'a' + 'A';
+}
 
 int RollDice(){
     return rand()%100;
