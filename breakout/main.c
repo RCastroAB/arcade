@@ -53,7 +53,7 @@ players player;
 
 void printHeader(){
     gotoxy(1,1);
-    printf("\n\n\tBlocks to win: %i || Blocks remaining: %i || Lives: %i  ",blocks_to_win,blocks_to_win-crashed_blocks,player.lives);
+    printf("\n\n\tBlocks to win: %i || Blocks remaining: %i || Lives: %i  \n",blocks_to_win,blocks_to_win-crashed_blocks,player.lives);
 }
 
 void printMap(){
@@ -197,7 +197,7 @@ void gameLogic(){
                         player.lives--;
                         if(player.lives>=0){
                             createBall();
-                            printMap();
+                            renderGame();
                             gotoxy(col,lin+4);
                             printf("\nOuch! You missed it.                          ");
                             gotoxy(1,1);
