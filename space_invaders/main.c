@@ -63,7 +63,6 @@ void createAliens();
 void createPlayer();
 
 void game();
-void show_manual();
 
 void renderGame();
 void printHeader();
@@ -96,7 +95,7 @@ int main(){
                 break;
             case 'H':
                 clearScreen();
-                show_manual();
+                show_file("manual", 500);
                 break;
         }
     }while(ch!='Q');
@@ -109,23 +108,6 @@ int main(){
 }
 
 
-void show_manual(){
-    FILE *manual = fopen("manual", "r");
-    if (manual==NULL){
-        printf("manual missing, try downloading the game again\n");
-        wait_input();
-        exit(3);
-    }
-    char word[100];
-    while(!feof(manual)){
-        fgets(word, 100, manual);
-        printf("%s", word);
-        delay(500);
-    }
-    fclose(manual);
-    wait_input();
-    return;
-}
 /*          FUNCTIONS           */
 
 /*          ESKELETON FUNCTIONS           */
