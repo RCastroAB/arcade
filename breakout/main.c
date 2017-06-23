@@ -31,6 +31,7 @@ typedef struct block{
     int size;
 } block;
 
+
 int col,lin;
 int **map,**map2;
 v_ball ball;
@@ -49,13 +50,15 @@ players player;
     //void ai(int linha, int coluna, int id);
     void createPlayers();
     void movePlayer(char dir);
+
     void game();
     int raid();
     void view_log();
     void log_result();
     void homescreen();
     void game_controller();
-    //void sera_que_eu_devo_rebater_a_bola();
+
+
 /*end*/
 
 /** Conio test - works*/
@@ -76,6 +79,7 @@ void colour(int i){
         strcat(lineBuffer, BLUE);
     } else if(i == 10 || i == 11 || 12){
         strcat(lineBuffer, CYAN);
+
     }
 }
 
@@ -139,9 +143,11 @@ void renderGame(){
     #ifndef __WIN32
         clearScreen();
     #endif
+
     printHeader();
     printMap();
 }
+
 
 void rollBallDirection(int coluna){
     if(ball.has_moved==2){
@@ -164,10 +170,12 @@ void rollBallDirection(int coluna){
     else
         ball.x = raid()<45 ? 1 : (raid()<55 ? 0 : -1);
 
+
 }
 
 void init(){
     srand( (unsigned)time(NULL) );
+
     FILE *helper;
     helper = fopen("helper","r");
     if(helper==NULL){
@@ -201,6 +209,7 @@ void createBall(){
     gotoxy(col,lin+4);
     printf("\nPress 't' to launch the ball.                          ");
     gotoxy(1,1);
+
 }
 
 void gameLogic(){
@@ -254,10 +263,12 @@ void gameLogic(){
                         break;
                 }
                 break;
+
             }
         }
     }
 }
+
 
 void createPlayers(){
   int i,j,count=0,aux;
@@ -272,10 +283,12 @@ void createPlayers(){
       		if(map[i][j]==9){ //block
                 blocks_to_win++;
             }
+
             if(map[i][j]==8){
                 aux=count;
                 for(j=0;j<col;j++){
                     if(map[i][j]==0){
+
                         printf("Malformed map. There are 0 on the player movement area on (%i,%i).\nExiting...\n\n",i,j);
                         wait_input();
                         exit(3);
@@ -289,6 +302,7 @@ void createPlayers(){
                             j+=10;
                         }else{
                             printf("Malformed player. A player must have length 5.\nExiting...\n\n");
+
                             wait_input();
                             exit(2);
                         }
@@ -296,6 +310,7 @@ void createPlayers(){
                 }
                 if(aux==count){
                     printf("Invalid 'helper' file. Some '8' are in wrong places on (%i,%i).\nExiting...\n\n",i,j);
+
                     wait_input();
                     exit(2);
                 }else{
@@ -340,6 +355,7 @@ void movePlayer(char dir){
                 }
             }
         }
+
     }
 }
 
@@ -353,6 +369,7 @@ void game(){
   gotoxy(col, lin+4);
   printf("\nPress 't' to launch the ball.                    ");
   while(crashed_blocks<blocks_to_win && player.lives>=0){
+
     if(hitkey()){
 	    ch = getkey();
 	    if(ch=='q'){
@@ -361,10 +378,12 @@ void game(){
             for(i=0;i<lin;i++)
                 for(j=0;j<col;j++)
                     if(map[i][j]==7) map[i][j]=0;
+
             break;
         }
 	    switch(ch)
 	    {
+
             case LEFTARROW    :  if(player.autoplay==0) movePlayer('l');
                 break;
             case RIGHTARROW  :  if(player.autoplay==0) movePlayer('r');
@@ -386,15 +405,20 @@ void game(){
 	            gotoxy(col,lin+4);
     	        printf("\n                                       ");
     	        break;
+
 	    }//end of switch(ch)
     }
   gameLogic();
   renderGame();
+
   delay(20);
+
   }
 }
 
 void game_controller(){
+
+
     clearScreen();
     char ch;
     do{
@@ -402,25 +426,31 @@ void game_controller(){
         log_result();
         do{
             gotoxy(col,lin+4);
+
             printf("\nGame over. You %s                   \nPlay again? (y/n)                                ", (crashed_blocks<blocks_to_win ? "lose." : "win!"));
             ch = wait_input();
             gotoxy(col,lin+4);
             printf("\n                           \n                   ");
+
         }while(ch != 'y' && ch != 'n');
     }while(ch != 'n');
 }
 
 int main()
 {
+
     char ch;
     clearScreen();
     printf("\n\t\t\t\t\tLoading...\n");
     delay(1000);
+
     do{
         clearScreen();
         show_file("homescreen",5);
         ch=wait_input();
         switch(ch){
+
+
             case 'g':
                 clearScreen();
                 game_controller();
@@ -429,6 +459,7 @@ int main()
                 clearScreen();
                 view_log();
                 break;
+
             case 'h':
                 clearScreen();
                 show_file("help",5);
@@ -436,6 +467,7 @@ int main()
                 break;
         }
     }while(ch!='q');
+
     return 0;
 }
 
@@ -444,17 +476,23 @@ void log_result(){
     log=fopen("game.log","r");
     if(log==NULL){
         log = fopen("game.log","w");
+
         fprintf(log,"Blocks to win,Crashed blocks,Lives,Result");
+
         fclose(log);
     };
     log = fopen("game.log","a");
     fprintf(log,"\n");
+
     fprintf(log,"%i,%i,%i,%s",blocks_to_win,crashed_blocks,player.lives,(crashed_blocks<blocks_to_win ? "Lose" : "Won"));
+
     fclose(log);
 }
 
 void view_log(){
+
     printf("\t\t\t   Matches\n\n");
+
     FILE *log;
     log=fopen("game.log","r");
     if(log==NULL){
@@ -462,6 +500,7 @@ void view_log(){
         wait_input();
         return;
     }
+
     char buf[50];
     char *token;
     int linha=0;
@@ -485,3 +524,4 @@ void view_log(){
     fclose(log);
     wait_input();
 }
+
