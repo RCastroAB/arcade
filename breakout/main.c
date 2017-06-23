@@ -1,6 +1,7 @@
 #ifndef __WIN32
 	#define gotoxy(a,b) (0) //"Undefine function gotoxy() on linux
 	#define textcolor(x) strcat(lineBuffer, x) //Atualiza função de cor
+    char lineBuffer[1000];
 #endif
 /**
  * ATENÇÃO: A função gotoxy() só tem utilidade no Windows. Em Linux ela é inutilizada na declaração acima.
@@ -531,7 +532,6 @@ void printMap(){
 }
 
 #else  //Sem usar conio
-char lineBuffer[1000];
 
 void printMap(){
     int i,j;
