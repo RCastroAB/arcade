@@ -38,7 +38,7 @@ v_ball ball;
 int blocks_to_win; //Quantidade de blocos em jogo que precisam ser quebrados
 int crashed_blocks; //Quantidade de blocos quebrados
 
-
+char * lineBuffer;
 players player;
 
 /* functions header*/
@@ -65,9 +65,24 @@ void printHeader(){
     printf("\n\n\tBlocks to win: %i || Blocks remaining: %i || Lives: %i  \n",blocks_to_win,blocks_to_win-crashed_blocks,player.lives);
 }
 
+void colour(int i){
+    if (i ==3 || i == 4){
+       strcat(lineBuffer, RED);
+    } else if(i==5 || i == 5){
+        strcat(lineBuffer, YELLOW);
+    } else if(i==6 || i ==7){
+        strcat(lineBuffer, GREEN);
+    } else if(i==8 || i == 9){
+        strcat(lineBuffer, BLUE);
+    } else if(i == 10 || i == 11 || 12){
+        strcat(lineBuffer, CYAN);
+    }
+}
+
 void printMap(){
     int i,j;
     for(i=0;i<lin;i++){
+        strcpy(lineBuffer, "");
         for(j=0;j<col;j++){
             #ifdef __WIN32
             if(map[i][j]!=map2[i][j]){
@@ -76,39 +91,43 @@ void printMap(){
                 gotoxy(2+j,4+i);
                 switch(map[i][j]){
                     case 5: //parede não quebrável
-                        printf( "|||");
+                        strcat(lineBuffer,  "|||");
                         break;
                     case 8: //espaço do player
                     case 0: //espaço vazio
-                        printf("   ");
+                        strcat(lineBuffer, "   ");
                         break;
                     case 1: //player
-                        printf("[|]");
+                        strcat(lineBuffer, "[|]");
                         break;
                     case 7: //bolinha
-                        printf(" o ");
-                        break;
+                        strcat(lineBuffer, " o ");
+                        break;//fuck it, hardcode.
                     case 9: //bloco quebrável
-                        printf(RED "[#]" RESET);
+                        colour(i);   
+                        strcat(lineBuffer, "[#]");
                         break;
                     case 10: //bloco recém-quebrado [8][8]
                     case 11:
                     case 12:
-                        printf(" %c ",177);
+                        colour(i);
+                        strcat(lineBuffer, "[8]");
                         break;
                     case 13: //bloco recém-quebrado 2
                     case 14:
                     case 15:
-                        printf(" %c ",176);
+                        colour(i);
+                        strcat(lineBuffer, "[-]");
                         break;
-                }
+                } strcat(lineBuffer, RESET);
             #ifdef __WIN32
             }
             #endif
         }
-        printf("\n");
+        printf("%s\n", lineBuffer);
     }
 }
+
 
 /** End*/
 /*
@@ -173,6 +192,7 @@ void init(){
     }
     fclose(helper);
     createPlayers();
+    lineBuffer = (char *) malloc(5*col*sizeof(char));
 }
 
 void createBall(){
@@ -371,7 +391,7 @@ void game(){
   gameLogic();
   renderGame();
   delay(40);
-  }
+  }free(lineBuffer);
 }
 
 void game_controller(){
