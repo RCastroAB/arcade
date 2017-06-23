@@ -1,11 +1,13 @@
 #ifndef __WIN32
 	#define gotoxy(a,b) (0) //"Undefine function gotoxy() on linux
+	#define textcolor(x) strcat(lineBuffer, x) //Atualiza função de cor
 #endif
 /**
  * ATENÇÃO: A função gotoxy() só tem utilidade no Windows. Em Linux ela é inutilizada na declaração acima.
 **/
 
 #include "multiplatform.h"
+
 
 #define LEFTARROW   'a'
 #define RIGHTARROW  'd'
@@ -39,15 +41,13 @@ v_ball ball;
 int blocks_to_win; //Quantidade de blocos em jogo que precisam ser quebrados
 int crashed_blocks; //Quantidade de blocos quebrados
 
-char  lineBuffer[1000];
+//char  lineBuffer[1000];
 players player;
 
 /* functions header*/
-    void printMap();
     void rollBallDirection(int linha);
     void init();
     void gameLogic();
-    //void ai(int linha, int coluna, int id);
     void createPlayers();
     void movePlayer(char dir);
 
@@ -58,80 +58,20 @@ players player;
     void homescreen();
     void game_controller();
 
+    void printMap();
+    void colour();
 
 /*end*/
 
 /** Conio test - works*/
 
 void printHeader(){
-    gotoxy(1,1);
-    printf("\n\n\tBlocks to win: %i || Blocks remaining: %i || Lives: %i  \n",blocks_to_win,blocks_to_win-crashed_blocks,player.lives);
+    #ifdef __WIN32
+        gotoxy(1,1);
+        textcolor(RESET);
+    #endif // __WIN32
+    printf("\n\nBlocks to win: %i || Blocks remaining: %i || Lives: %i  \n",blocks_to_win,blocks_to_win-crashed_blocks,player.lives);
 }
-
-void colour(int i){
-    if (i ==3 || i == 4){
-       strcat(lineBuffer, RED);
-    } else if(i==5 || i == 5){
-        strcat(lineBuffer, YELLOW);
-    } else if(i==6 || i ==7){
-        strcat(lineBuffer, GREEN);
-    } else if(i==8 || i == 9){
-        strcat(lineBuffer, BLUE);
-    } else if(i == 10 || i == 11 || 12){
-        strcat(lineBuffer, CYAN);
-
-    }
-}
-
-void printMap(){
-    int i,j;
-    for(i=0;i<lin;i++){
-        strcpy(lineBuffer, "");
-        for(j=0;j<col;j++){
-            #ifdef __WIN32
-            if(map[i][j]!=map2[i][j]){
-				map2[i][j]=map[i][j];
-            #endif
-                gotoxy(2+j,4+i);
-                switch(map[i][j]){
-                    case 5: //parede não quebrável
-                        strcat(lineBuffer,  "|||");
-                        break;
-                    case 8: //espaço do player
-                    case 0: //espaço vazio
-                        strcat(lineBuffer, "   ");
-                        break;
-                    case 1: //player
-                        strcat(lineBuffer, "[|]");
-                        break;
-                    case 7: //bolinha
-                        strcat(lineBuffer, " o ");
-                        break;//fuck it, hardcode.
-                    case 9: //bloco quebrável
-                        colour(i);   
-                        strcat(lineBuffer, "[#]");
-                        break;
-                    case 10: //bloco recém-quebrado [8][8]
-                    case 11:
-                    case 12:
-                        colour(i);
-                        strcat(lineBuffer, "[8]");
-                        break;
-                    case 13: //bloco recém-quebrado 2
-                    case 14:
-                    case 15:
-                        colour(i);
-                        strcat(lineBuffer, "[-]");
-                        break;
-                } strcat(lineBuffer, RESET);
-            #ifdef __WIN32
-            }
-            #endif
-        }
-        printf("%s\n", lineBuffer);
-    }
-}
-
 
 /** End*/
 /*
@@ -143,9 +83,8 @@ void renderGame(){
     #ifndef __WIN32
         clearScreen();
     #endif
-
     printHeader();
-    printMap();
+    printMap(map,map2,lin,col);
 }
 
 
@@ -205,7 +144,7 @@ void init(){
 
 void createBall(){
     ball.with_player=1;
-    map[player.y-1][player.x+5]=7;
+    map[player.y-1][player.x+4]=7;
     gotoxy(col,lin+4);
     printf("\nPress 't' to launch the ball.                          ");
     gotoxy(1,1);
@@ -273,6 +212,7 @@ void gameLogic(){
 void createPlayers(){
   int i,j,count=0,aux;
   blocks_to_win=0;
+  crashed_blocks=0;
   for(i=0;i<lin;i++){
       for(j=0;j<col;j++){
       		if(map[i][j]!=0 && map[i][j]!=1 && map[i][j]!=9 && map[i][j]!=5 && map[i][j]!=8){  //Illegal characters
@@ -328,30 +268,30 @@ void createPlayers(){
 }
 
 void movePlayer(char dir){
-    if(dir=='l' && player.x-3>=0){
+    if(dir=='l' && player.x-1>=0){
         int i;
         for(i=1;i<=3;i++){
             if(map[player.y][player.x-1]==8){
-                map[player.y][player.x+10]=8;
+                map[player.y][player.x+8]=8;
                 player.x--;
                 map[player.y][player.x]=1;
                 if(ball.with_player==1){
-                    map[player.y-1][player.x+5]=7;
-                    map[player.y-1][player.x+6]=0;
+                    map[player.y-1][player.x+4]=7;
+                    map[player.y-1][player.x+5]=0;
                 }
             }
         }
     }
-    else if(dir=='r' && player.y+11<col){
+    else if(dir=='r' && player.y+9<col){
         int i;
         for(i=1;i<=3;i++){
-            if(map[player.y][player.x+11]==8){
+            if(map[player.y][player.x+9]==8){
                 map[player.y][player.x]=8;
                 player.x++;
-                map[player.y][player.x+10]=1;
+                map[player.y][player.x+8]=1;
                 if(ball.with_player==1){
-                    map[player.y-1][player.x+5]=7;
-                    map[player.y-1][player.x+4]=0;
+                    map[player.y-1][player.x+4]=7;
+                    map[player.y-1][player.x+3]=0;
                 }
             }
         }
@@ -445,6 +385,10 @@ int main()
     delay(1000);
 
     do{
+        #ifdef __WIN32
+            textbackground(BLACK);
+            textcolor(RESET);
+        #endif // __WIN32
         clearScreen();
         show_file("homescreen",5);
         ch=wait_input();
@@ -490,7 +434,6 @@ void log_result(){
 }
 
 void view_log(){
-
     printf("\t\t\t   Matches\n\n");
 
     FILE *log;
@@ -525,3 +468,109 @@ void view_log(){
     wait_input();
 }
 
+void colour(int i){
+    if (i ==3 || i == 4){
+        textcolor(RED);
+    } else if(i==5 || i == 5){
+        textcolor(YELLOW);
+    } else if(i==6 || i ==7){
+        textcolor(GREEN);
+    } else if(i==8 || i == 9){
+        textcolor(BLUE);
+    } else if(i == 10 || i == 11 || 12){
+        textcolor(CYAN);
+    }
+}
+
+//Print map
+
+#ifdef _WIN32  //Usando conio
+
+void printMap(){
+    int i,j;
+    for(i=0;i<lin;i++){
+        for(j=0;j<col;j++){
+            if(map[i][j]!=map2[i][j]){
+				map2[i][j]=map[i][j];
+                gotoxy(1+(j*3),4+i);
+                switch(map[i][j]){
+                    case 5: //parede não quebrável
+                        printf("%c%c%c",178,178,178);
+                        break;
+                    case 8: //espaço do player
+                    case 0: //espaço vazio
+                        printf("   ");
+                        break;
+                    case 1: //player
+                        printf("[|]");
+                        break;
+                    case 7: //bolinha
+                        printf(" o ");
+                        break;//fuck it, hardcode.
+                    case 9: //bloco quebrável
+                        colour(i);
+                        printf("[#]");
+                        break;
+                    case 10: //bloco recém-quebrado [8][8]
+                    case 11:
+                    case 12:
+                        colour(i);
+                        printf("[8]");
+                        break;
+                    case 13: //bloco recém-quebrado 2
+                    case 14:
+                    case 15:
+                        colour(i);
+                        printf("[-]");
+                        break;
+                }
+            }
+            textcolor(RESET);
+        }
+    }
+}
+
+#else  //Sem usar conio
+char lineBuffer[1000];
+
+void printMap(){
+    int i,j;
+    for(i=0;i<lin;i++){
+        strcpy(lineBuffer, "");
+        for(j=0;j<col;j++){
+                switch(map[i][j]){
+                    case 5: //parede não quebrável
+                        strcat(lineBuffer,  "|||");
+                        break;
+                    case 8: //espaço do player
+                    case 0: //espaço vazio
+                        strcat(lineBuffer, "   ");
+                        break;
+                    case 1: //player
+                        strcat(lineBuffer, "[|]");
+                        break;
+                    case 7: //bolinha
+                        strcat(lineBuffer, " o ");
+                        break;//fuck it, hardcode.
+                    case 9: //bloco quebrável
+                        colour(i);
+                        strcat(lineBuffer, "[#]");
+                        break;
+                    case 10: //bloco recém-quebrado [8][8]
+                    case 11:
+                    case 12:
+                        colour(i);
+                        strcat(lineBuffer, "[8]");
+                        break;
+                    case 13: //bloco recém-quebrado 2
+                    case 14:
+                    case 15:
+                        colour(i);
+                        strcat(lineBuffer, "[-]");
+                        break;
+                } strcat(lineBuffer, RESET);
+        }
+        printf("%s\n", lineBuffer);
+    }
+}
+#endif

@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdio_ext.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -9,12 +8,22 @@
     #include <windows.h>
     #include <conio.h>
 
+    #define RED     4
+    #define GREEN   2
+    #define YELLOW  14
+    #define BLUE    1
+    #define MAGENTA 5
+    #define CYAN    3
+    #define BLACK   0
+    #define RESET   15
+
 #endif
 
 #ifdef linux
     #include <unistd.h>
     #include <termios.h>
     #include <fcntl.h>
+    #include <stdio_ext.h>
 
     #define RED     "\x1b[31m"
     #define GREEN   "\x1b[32m"
@@ -25,7 +34,6 @@
     #define RESET   "\x1b[0m"
 
 #endif
-
 
 
 
@@ -156,6 +164,7 @@ void clearScreen(){
 
 
 void show_file(char file[80], int lineDelay){
+
     FILE *file_p = fopen(file,"r");
     if(file_p==NULL){
         printf("'%s' file not found, maybe the software package is corrupted.\nExiting...\n",file);
