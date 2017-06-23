@@ -13,6 +13,7 @@
 #define DOWNARROW2  'k'
 #define PAUSEBUTTON 'p'
 #define max_points 10
+#define BALLSPEED 2
 
 typedef struct v_ball{
     int x,y,has_moved;
@@ -28,6 +29,7 @@ int **map,**map2;
 v_ball ball;
 
 int vou_pegar_a_bola;
+float ball_to_move;
 
 player players[2];
 
@@ -77,7 +79,7 @@ void printMap(){
                 gotoxy(1+(j*3),4+i);
                 switch(map[i][j]){
                     case 5:
-                        printf("%c%c%c",178,178,178);
+                        printf("###");
                         break;
                     case 8:
                     case 0:
@@ -161,6 +163,7 @@ void init(){
 void createBall(){
     map[1+(rand()%(lin-2))][col/2]=70;
     rollBallDirection(0);
+    ball_to_move=0;
 }
 
 void gameLogic(){
@@ -183,6 +186,7 @@ void gameLogic(){
                     break;
                 case 70:
                     if(ball.has_moved!=0) break;
+                    if (ball_to_move >= 1){
                     if(players[0].autoplay==1) ai(i,j,0);
                     if(players[1].autoplay==1) ai(i,j,1);
                     ball.has_moved=1;
@@ -212,6 +216,8 @@ void gameLogic(){
                             gameLogic();
                             break;
                     }
+                    ball_to_move -= 1;
+                    } else ball_to_move += 1.0/BALLSPEED;
                     break;
             }
         }

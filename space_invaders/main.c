@@ -380,9 +380,10 @@ void gameLogic(){//dividio em partes
                     enemy_bullets[i].y++;
                     break;
                 case 5:
+                    map[enemy_bullets[i].y][enemy_bullets[i].x] = 8;
                     enemy_bullets[i].y = 0;
                     enemy_bullets[i].x = 0;
-                    enemy_bullets[i].active = 8;
+                    enemy_bullets[i].active = 0;
                     break;
                 default:
                     enemy_bullets[i].y++;
