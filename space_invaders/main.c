@@ -54,6 +54,8 @@ alien * enemies = NULL;
 float alien_speed, alien_move;
 char move_dir;
 alien_bullet enemy_bullets[ALIENMAXBULLETS];
+
+
 //Headers
 
 void game_controller();
@@ -380,7 +382,7 @@ void gameLogic(){//dividio em partes
                 case 5:
                     enemy_bullets[i].y = 0;
                     enemy_bullets[i].x = 0;
-                    enemy_bullets[i].active = 0;
+                    enemy_bullets[i].active = 8;
                     break;
                 default:
                     enemy_bullets[i].y++;
@@ -476,7 +478,7 @@ void gameLogic(){//dividio em partes
                     alien_speed+= enemies[i].evil_level/1000.0;
                     map[enemies[i].y][enemies[i].x] = 0;
                     break;
-		case 1:
+		        case 1:
                 case 8:
                     forceGameOver();
                     break;
