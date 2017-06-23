@@ -66,8 +66,8 @@ players player;
 /** Conio test - works*/
 
 void printHeader(){
-    gotoxy(1,1);
     #ifdef __WIN32
+        gotoxy(1,1);
         textcolor(RESET);
     #endif // __WIN32
     printf("\n\nBlocks to win: %i || Blocks remaining: %i || Lives: %i  \n",blocks_to_win,blocks_to_win-crashed_blocks,player.lives);
@@ -212,6 +212,7 @@ void gameLogic(){
 void createPlayers(){
   int i,j,count=0,aux;
   blocks_to_win=0;
+  crashed_blocks=0;
   for(i=0;i<lin;i++){
       for(j=0;j<col;j++){
       		if(map[i][j]!=0 && map[i][j]!=1 && map[i][j]!=9 && map[i][j]!=5 && map[i][j]!=8){  //Illegal characters
