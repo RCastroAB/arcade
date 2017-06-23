@@ -2,7 +2,7 @@
 	#define gotoxy(a,b) (0) //"Undefine function gotoxy() on linux
 #endif
 /**
- * ATEN«√O: A funÁ„o gotoxy() sÛ tem utilidade no Windows. Em Linux ela È inutilizada na declaraÁ„o acima.
+ * ATEN√á√ÉO: A fun√ß√£o gotoxy() s√≥ tem utilidade no Windows. Em Linux ela √© inutilizada na declara√ß√£o acima.
 **/
 
 #include "multiplatform.h"
@@ -38,7 +38,7 @@ v_ball ball;
 int blocks_to_win; //Quantidade de blocos em jogo que precisam ser quebrados
 int crashed_blocks; //Quantidade de blocos quebrados
 
-char * lineBuffer;
+char  lineBuffer[1000];
 players player;
 
 /* functions header*/
@@ -90,11 +90,11 @@ void printMap(){
             #endif
                 gotoxy(2+j,4+i);
                 switch(map[i][j]){
-                    case 5: //parede n„o quebr·vel
+                    case 5: //parede n√£o quebr√°vel
                         strcat(lineBuffer,  "|||");
                         break;
-                    case 8: //espaÁo do player
-                    case 0: //espaÁo vazio
+                    case 8: //espa√ßo do player
+                    case 0: //espa√ßo vazio
                         strcat(lineBuffer, "   ");
                         break;
                     case 1: //player
@@ -103,17 +103,17 @@ void printMap(){
                     case 7: //bolinha
                         strcat(lineBuffer, " o ");
                         break;//fuck it, hardcode.
-                    case 9: //bloco quebr·vel
+                    case 9: //bloco quebr√°vel
                         colour(i);   
                         strcat(lineBuffer, "[#]");
                         break;
-                    case 10: //bloco recÈm-quebrado [8][8]
+                    case 10: //bloco rec√©m-quebrado [8][8]
                     case 11:
                     case 12:
                         colour(i);
                         strcat(lineBuffer, "[8]");
                         break;
-                    case 13: //bloco recÈm-quebrado 2
+                    case 13: //bloco rec√©m-quebrado 2
                     case 14:
                     case 15:
                         colour(i);
@@ -149,7 +149,7 @@ void rollBallDirection(int coluna){
         ball.x*= raid()<20 ? 0 : -1;
         return;
     }
-    if(coluna==0){ //bolinha n„o lanÁada
+    if(coluna==0){ //bolinha n√£o lan√ßada
         ball.x=0;
         ball.y=-1;
         return;
@@ -192,7 +192,7 @@ void init(){
     }
     fclose(helper);
     createPlayers();
-    lineBuffer = (char *) malloc(5*col*sizeof(char));
+    //lineBuffer = (char *) malloc(5*col*sizeof(char));
 }
 
 void createBall(){
@@ -208,9 +208,9 @@ void gameLogic(){
     ball.has_moved=0;
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++){
-            if(map[i][j]==15){ //Roda a transiÁ„o de um bloco sendo destruÌdo.
+            if(map[i][j]==15){ //Roda a transi√ß√£o de um bloco sendo destru√≠do.
                     map[i][j]=0;
-            }else if(map[i][j]>=10){ //⁄ltima transiÁ„o de blocos sendo destruÌdos
+            }else if(map[i][j]>=10){ //√öltima transi√ß√£o de blocos sendo destru√≠dos
                     map[i][j]++;
             }else if(map[i][j]==7){ //bolinha
                 if(ball.has_moved!=0 || ball.with_player==1) break;
@@ -390,8 +390,8 @@ void game(){
     }
   gameLogic();
   renderGame();
-  delay(40);
-  }free(lineBuffer);
+  delay(20);
+  }
 }
 
 void game_controller(){
