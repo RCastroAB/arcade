@@ -57,6 +57,7 @@ alien_bullet enemy_bullets[ALIENMAXBULLETS];
 //Headers
 
 void game_controller();
+void freeMem();
 void init();
 void createBullets();
 void createAliens();
@@ -112,12 +113,11 @@ int main(){
 
 /*          ESKELETON FUNCTIONS           */
 void game_controller(){
-    init();
-    clearScreen();
-    lineBuffer = (char *)calloc(col*3,sizeof(char));
     char ch;
     do{
         init();
+        clearScreen();
+        lineBuffer = (char *)calloc(col*3,sizeof(char));
         game();
         do{
             printf("\n%s.\nPlay again? (y/n)", win ? "You Win" : "Game Over");
@@ -125,7 +125,14 @@ void game_controller(){
             ch = wait_input();
             printf("\n                           \n                   ");
         }while(ch != 'y' && ch != 'n');
+        freeMem();
     }while(ch != 'n');
+}
+
+void freeMem(){
+    freeMap(map, lin);
+    free(enemies);
+    free(lineBuffer);
 }
 
 
@@ -136,7 +143,6 @@ void init(){
     int i,j;
     fscanf(helper,"%i %i %i",&lin,&col, &total_aliens);
     map = alocaMap(lin,col);
-    map2 = alocaMap(lin,col);
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++){
             fscanf(helper,"%i ",&map[i][j]);
@@ -252,7 +258,6 @@ void game(){
     delay(40);
   }
   if (alien_num == 0) win =1;
-  free(enemies);
 }
 
 /*      RENDER        */
