@@ -21,6 +21,16 @@ typedef struct player{
     int autoplay; //If 0, player mode. if 1, AI moves the player;
 }players;
 
+
+typedef struct spot{
+    int x, y;
+} spot;
+
+typedef struct block{
+    spot * occupied_spots;
+    int size;
+} block;
+
 int col,lin;
 int **map,**map2;
 v_ball ball;
@@ -28,7 +38,6 @@ v_ball ball;
 int blocks_to_win; //Quantidade de blocos em jogo que precisam ser quebrados
 int crashed_blocks; //Quantidade de blocos quebrados
 
-int vou_pegar_a_bola;
 
 players player;
 
@@ -67,30 +76,30 @@ void printMap(){
                 gotoxy(2+j,4+i);
                 switch(map[i][j]){
                     case 5: //parede não quebrável
-                        printf("%c",219);
+                        printf( "|||");
                         break;
                     case 8: //espaço do player
                     case 0: //espaço vazio
-                        printf(" ");
+                        printf("   ");
                         break;
                     case 1: //player
-                        printf("|");
+                        printf("[|]");
                         break;
                     case 7: //bolinha
-                        printf("o");
+                        printf(" o ");
                         break;
                     case 9: //bloco quebrável
-                        printf("%c",178);
+                        printf(RED "[#]" RESET);
                         break;
-                    case 10: //bloco recém-quebrado
+                    case 10: //bloco recém-quebrado [8][8]
                     case 11:
                     case 12:
-                        printf("%c",177);
+                        printf(" %c ",177);
                         break;
                     case 13: //bloco recém-quebrado 2
                     case 14:
                     case 15:
-                        printf("%c",176);
+                        printf(" %c ",176);
                         break;
                 }
             #ifdef __WIN32
