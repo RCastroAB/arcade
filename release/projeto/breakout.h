@@ -22,17 +22,6 @@ typedef struct b_player{
     int autoplay; //If 0, player mode. if 1, AI moves the player;
 }b_players;
 
-
-typedef struct spot{
-    int x, y;
-} spot;
-
-typedef struct block{
-    spot * occupied_spots;
-    int size;
-} block;
-
-
 int col,lin;
 int **map,**map2;
 b_v_ball b_ball;

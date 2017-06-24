@@ -5,7 +5,7 @@
  * ATENÇÃO: A função gotoxy() só tem utilidade no Windows. Em Linux ela é inutilizada na declaração acima.
 **/
 
-#include "../commom.h"
+#include "../common.h"
 
 #define UPARROW     'w'
 #define DOWNARROW   's'

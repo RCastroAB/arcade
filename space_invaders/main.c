@@ -1,4 +1,4 @@
-#include "../commom.h"
+#include "../common.h"
 
 #define LEFTARROW 'a'
 #define RIGHTARROW 'd'
