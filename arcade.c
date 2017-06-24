@@ -13,6 +13,7 @@ int main(){
 
     int choice;
     do {
+        choice = -1;
         clearScreen();
         printf("ARCADE\n");
         printf("Choose your game\n\n(1)Pong\n(2)Breakout\n(3)Space Invaders\n(0)Exit\n");

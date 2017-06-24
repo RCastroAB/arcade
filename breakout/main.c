@@ -352,7 +352,7 @@ void game(){
   gameLogic();
   renderGame();
 
-  delay(20);
+  delay(40);
 
   }
 }
