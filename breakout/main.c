@@ -1,7 +1,7 @@
 #ifndef __WIN32
 	#define gotoxy(a,b) (0) //"Undefine function gotoxy() on linux
-	#define textcolor(x) strcat(lineBuffer, x) //Atualiza função de cor
-    char lineBuffer[1000];
+	#define textcolor(x) strcat(b_lineBuffer, x) //Atualiza função de cor
+    char b_lineBuffer[1000];
 #endif
 /**
  * ATENÇÃO: A função gotoxy() só tem utilidade no Windows. Em Linux ela é inutilizada na declaração acima.
@@ -42,7 +42,7 @@ b_v_ball b_ball;
 int blocks_to_win; //Quantidade de blocos em jogo que precisam ser quebrados
 int crashed_blocks; //Quantidade de blocos quebrados
 
-//char  lineBuffer[1000];
+//char  b_lineBuffer[1000];
 b_players b_player;
 
 /* functions header*/
@@ -140,7 +140,7 @@ void b_init(){
     }
     fclose(helper);
     b_createPlayers();
-    //lineBuffer = (char *) malloc(5*col*sizeof(char));
+    //b_lineBuffer = (char *) malloc(5*col*sizeof(char));
 }
 
 void b_createBall(){
@@ -536,41 +536,41 @@ void b_printMap(){
 void b_printMap(){
     int i,j;
     for(i=0;i<lin;i++){
-        strcpy(lineBuffer, "");
+        strcpy(b_lineBuffer, "");
         for(j=0;j<col;j++){
                 switch(map[i][j]){
                     case 5: //parede não quebrável
-                        strcat(lineBuffer,  "|||");
+                        strcat(b_lineBuffer,  "|||");
                         break;
                     case 8: //espaço do player
                     case 0: //espaço vazio
-                        strcat(lineBuffer, "   ");
+                        strcat(b_lineBuffer, "   ");
                         break;
                     case 1: //player
-                        strcat(lineBuffer, "[|]");
+                        strcat(b_lineBuffer, "[|]");
                         break;
                     case 7: //bolinha
-                        strcat(lineBuffer, " o ");
+                        strcat(b_lineBuffer, " o ");
                         break;//fuck it, hardcode.
                     case 9: //bloco quebrável
                         b_colour(i);
-                        strcat(lineBuffer, "[#]");
+                        strcat(b_lineBuffer, "[#]");
                         break;
                     case 10: //bloco recém-quebrado [8][8]
                     case 11:
                     case 12:
                         b_colour(i);
-                        strcat(lineBuffer, "[8]");
+                        strcat(b_lineBuffer, "[8]");
                         break;
                     case 13: //bloco recém-quebrado 2
                     case 14:
                     case 15:
                         b_colour(i);
-                        strcat(lineBuffer, "[-]");
+                        strcat(b_lineBuffer, "[-]");
                         break;
-                } strcat(lineBuffer, RESET);
+                } strcat(b_lineBuffer, RESET);
         }
-        printf("%s\n", lineBuffer);
+        printf("%s\n", b_lineBuffer);
     }
 }
 #endif
