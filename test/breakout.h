@@ -418,7 +418,7 @@ void b_log_result(){
     FILE *log;
     log=fopen("b_game.log","r");
     if(log==NULL){
-        log = fopen("game.log","w");
+        log = fopen("b_game.log","w");
 
         fprintf(log,"Blocks to win,Crashed blocks,Lives,Result");
 
