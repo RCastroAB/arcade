@@ -1,4 +1,3 @@
-#include "../commom.h"
 
 #define LEFTARROW 'a'
 #define RIGHTARROW 'd'
