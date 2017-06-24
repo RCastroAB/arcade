@@ -5,7 +5,7 @@
  * ATENÇÃO: A função gotoxy() só tem utilidade no Windows. Em Linux ela é inutilizada na declaração acima.
 **/
 
-#include "multiplatform.h"
+#include "../commom.h"
 
 #define UPARROW     'w'
 #define DOWNARROW   's'
@@ -75,8 +75,8 @@ void printMap(){
             #ifdef __WIN32
             if(map[i][j]!=map2[i][j]){
 				map2[i][j]=map[i][j];
+				gotoxy(1+(j*3),4+i);
             #endif
-                gotoxy(1+(j*3),4+i);
                 switch(map[i][j]){
                     case 5:
                         printf("###");

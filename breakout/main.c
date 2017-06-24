@@ -7,7 +7,7 @@
  * ATENÇÃO: A função gotoxy() só tem utilidade no Windows. Em Linux ela é inutilizada na declaração acima.
 **/
 
-#include "multiplatform.h"
+#include "../commom.h"
 
 
 #define LEFTARROW   'a'

@@ -1,22 +1,47 @@
 #include <stdio.h>
-#include <stdio_ext.h>
+#ifndef __WIN32
+    #include <stdio_ext.h>
+#endif // linux
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 #ifdef _WIN32
     #include <windows.h>
     #include <conio.h>
+
+    #define RED     4
+    #define GREEN   2
+    #define YELLOW  14
+    #define BLUE    1
+    #define MAGENTA 5
+    #define CYAN    3
+    #define BLACK   0
+    #define RESET   15
+
 #endif
 
 #ifdef linux
     #include <unistd.h>
     #include <termios.h>
     #include <fcntl.h>
-    //#include "multiconio.h"
+    #include <stdio_ext.h>
+
+    #define RED     "\x1b[31m"
+    #define GREEN   "\x1b[32m"
+    #define YELLOW  "\x1b[33m"
+    #define BLUE    "\x1b[34m"
+    #define MAGENTA "\x1b[35m"
+    #define CYAN    "\x1b[36m"
+    #define RESET   "\x1b[0m"
+
 #endif
 
-//Headers
+
+
+
+
 int hitkey(void);
 int getkey(void);
 int **alocaMap(int lin, int col);
@@ -24,11 +49,9 @@ void freeMap(int **mapa, int lin);
 void delay(int i);
 int wait_input();
 void clearScreen();
-void show_file(char file[80], int lineDelay);
 char toUpper(char c);
-
-
-//Function Definitions
+void show_file(char *file, int lineDelay);
+int RollDice();
 
 char toUpper(char c){
     if(c < 'a' || c > 'z') return c;
@@ -37,6 +60,11 @@ char toUpper(char c){
 
 int RollDice(){
     return rand()%100;
+}
+
+
+int raid(){
+	return rand() % 100;
 }
 
 int hitkey(void)
@@ -70,34 +98,34 @@ int hitkey(void)
 	#endif
 }
 
-int getkey(){
-    #ifdef __WIN32
-        return getch();
-    #else
-        struct termios oldattr, newattr;
-        int ch;
-        tcgetattr( STDIN_FILENO, &oldattr );
-        newattr = oldattr;
-        newattr.c_lflag &= ~( ICANON | ECHO );
-        tcsetattr( STDIN_FILENO, TCSANOW, &newattr );
-        ch = getchar();
-        tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
-        return ch;
-    #endif
+int getkey(void){
+
+	#ifdef __WIN32
+	    return tolower(getch());
+	#else
+		struct termios oldattr, newattr;
+	    int ch;
+	    tcgetattr( STDIN_FILENO, &oldattr );
+	    newattr = oldattr;
+	    newattr.c_lflag &= ~( ICANON | ECHO );
+	    tcsetattr( STDIN_FILENO, TCSANOW, &newattr );
+	    ch = getchar();
+    	tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
+	    return tolower(ch);
+	#endif
 
 }
 
-
 int** alocaMap(int lin, int col){
     int** mapa;
-    mapa = (int **) malloc(lin*sizeof(int*));
+    mapa = (int **) calloc(lin,sizeof(int*));
     if(mapa==NULL || mapa==0){
         printf("Erro ao alocar memoria\n");
         exit(1);
     }
     int i=0;
     for(i=0;i<lin;i++){
-        mapa[i] = (int *) malloc(col*sizeof(int));
+        mapa[i] = (int *) calloc(col,sizeof(int));
         if(mapa[i]==NULL || mapa[i]==0){
             printf("Erro ao alocar memoria\n");
             do{
@@ -126,13 +154,20 @@ void sleepFunc(int i)
     #endif
 }
 
+void delay(int i)
+{
+    sleepFunc(i);
+}
+
 int wait_input(){
     #ifdef _WIN32
 	    fflush(stdin);
 	#else
         __fpurge(stdin);
     #endif
-    return getkey();
+
+    return tolower(getkey());
+
 }
 
 void clearScreen(){
@@ -143,15 +178,12 @@ void clearScreen(){
     #endif
 }
 
-void delay(int i)
-{
-    sleepFunc(i);
-}
 
 void show_file(char file[80], int lineDelay){
+
     FILE *file_p = fopen(file,"r");
     if(file_p==NULL){
-        printf("'%s' file not found, maybe the software package is corrupted. Press [enter] to exit.\n",file);
+        printf("'%s' file not found, maybe the software package is corrupted.\nExiting...\n",file);
         wait_input();
         exit(3);
     }
@@ -164,3 +196,4 @@ void show_file(char file[80], int lineDelay){
     fclose(file_p);
     return;
 }
+

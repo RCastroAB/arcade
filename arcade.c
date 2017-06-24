@@ -10,7 +10,7 @@ void clearScreen();
 
 
 int main(){
-    
+
     int choice;
     do {
         clearScreen();
@@ -31,7 +31,7 @@ int main(){
 
     } while (choice != 0);
     return 0;
-    
+
 }
 
 
@@ -41,7 +41,11 @@ void run(char game[30]){
     strcpy(execute, "");
     strcat(execute, "cd ");
     strcat(execute, game);
-    strcat(execute, "; ./");
+    #ifndef __WIN32
+        strcat(execute, "; ./");
+    #else
+        strcat(execute, "; start ");
+    #endif
     strcat(execute, game);
 
     system(execute);
@@ -61,6 +65,11 @@ void compile(char game[30]){
     strcpy(src_path, "");
     strcat(src_path, game);
     strcat(src_path, "/main.c");
+
+    #ifdef __WIN32
+        strcat(compile, " -lconio");
+    #endif // __WIN32
+
     FILE * game_src = fopen(src_path, "r");
     if (game_src == NULL){
         clearScreen();
@@ -82,6 +91,6 @@ void clearScreen(){
     #ifdef linux
         system("clear");
     #else
-        system("@cls");
+        //system("@cls");
     #endif
 }

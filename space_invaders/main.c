@@ -1,4 +1,4 @@
-#include "invaderlibs.h"
+#include "../commom.h"
 
 #define LEFTARROW 'a'
 #define RIGHTARROW 'd'
@@ -80,9 +80,6 @@ void killPlayer();
 
 /*          MAIN          */
 int main(){
-    // #ifndef __WIN32
-    //     initconio();
-    // #endif // linux
     char ch;
     clearScreen();
     printf("\n\t\t\t\t\tLoading...\n");
@@ -103,10 +100,6 @@ int main(){
         }
     }while(ch!='Q');
 
-    //
-    // #ifndef __WIN32
-    //     endconio();
-    // #endif // linux
     return 0;
 }
 
@@ -119,12 +112,15 @@ void game_controller(){
     do{
         init();
         clearScreen();
-        lineBuffer = (char *)calloc(col*3,sizeof(char));
+        #ifndef __WIN32
+            lineBuffer = (char *)calloc(col*3,sizeof(char));
+        #endif // linux
         game();
         do{
+            gotoxy(col,lin+4);
             printf("\n%s.\nPlay again? (y/n)", win ? "You Win" : "Game Over");
-
             ch = wait_input();
+            gotoxy(col,lin+4);
             printf("\n                           \n                   ");
         }while(ch != 'y' && ch != 'n');
         freeMem();
@@ -134,7 +130,9 @@ void game_controller(){
 void freeMem(){
     freeMap(map, lin);
     free(enemies);
-    free(lineBuffer);
+    #ifndef __WIN32
+        free(lineBuffer);
+    #endif // linux
 }
 
 
@@ -145,9 +143,15 @@ void init(){
     int i,j;
     fscanf(helper,"%i %i %i",&lin,&col, &total_aliens);
     map = alocaMap(lin,col);
+    #ifdef __WIN32
+        map2 = alocaMap(lin,col);
+    #endif // __WIN32
     for(i=0;i<lin;i++){
         for(j=0;j<col;j++){
             fscanf(helper,"%i ",&map[i][j]);
+            #ifdef __WIN32
+                map2[i][j]=999;
+            #endif // __WIN32
         }
     }
     fclose(helper);
@@ -252,7 +256,6 @@ void game(){
             case SHOOT:
                 player_shoot();
                 break;
-            //case 'c' : map[lin/2][col/2]=90; break;
 	    }//end of switch(ch)
     }
     gameLogic();
@@ -266,18 +269,75 @@ void game(){
 
 
 void renderGame(){
-    clearScreen();
+    #ifndef __WIN32
+        clearScreen();
+    #endif // __WIN32
     printHeader();
     printMap();
 }
 
 void printHeader(){
+    gotoxy(1,1);
     printf("Score: %i | Remaining Aliens %i | Killed Aliens: %i | Lives: %i | Bullets: %i         \n",score,alien_num,total_aliens-alien_num,lives, player.remain_bullets);
 
     return;
 }
 int maxr, maxl;
 
+
+#ifdef __WIN32 // Usar a conio caso Windows
+
+void printMap(){
+    int i,j;
+    for(i=0;i<lin;i++){
+        for(j=0;j<col;j++){
+          if(map[i][j]!=map2[i][j]){
+			map2[i][j]=map[i][j];
+			gotoxy(1+(j*3),3+i);
+            switch(map[i][j]){
+                case 5:
+                    printf("|||");
+                    break;
+                case 8:
+                case 88:
+                case 0:
+                    printf("   ");
+                    break;
+                case 1:
+                    printf("/^\\");
+                    break;
+                case 61:
+                    printf(")-(");
+                    break;
+                case 62:
+                    printf("}W{");
+                    break;
+                case 63:
+                    printf("w0w");
+                    break;
+                case 64:
+                    printf("|0|");
+                    break;
+                case 65:
+                    printf("/=\\");
+                    break;
+                case 6:
+                    printf(" + ");
+                    break;
+                case 7:
+                    printf(" * ");
+                    break;
+                    case 10:
+                case 71:
+                    printf("!!!");
+                    break;
+            }
+          }
+        }
+    }
+}
+
+#else
 
 void printMap(){
     int i,j;
@@ -286,50 +346,39 @@ void printMap(){
         for(j=0;j<col;j++){
             switch(map[i][j]){
                 case 5:
-                    //if(j==0||j=lin-1)
-                    //printf("%c%c%c",178,178,178);
                     strcat(lineBuffer, "|||");
                     break;
                 case 8:
                 case 88:
                 case 0:
-                    //printf("   ");
                     strcat(lineBuffer, "   ");
                     break;
                 case 1:
-                    //printf("|%c|",178);
                     strcat(lineBuffer, "/^\\");
                     break;
                 case 61:
-                    //printf(" | ");
                     strcat(lineBuffer, ")-(");
                     break;
                 case 62:
-                    //printf(" | ");
                     strcat(lineBuffer, "}W{");
                     break;
                 case 63:
-                    //printf(" | ");
                     strcat(lineBuffer, "w0w");
                     break;
                 case 64:
-                    //printf(" | ");
                     strcat(lineBuffer, "|0|");
                     break;
                 case 65:
-                    //printf(" | ");
                     strcat(lineBuffer, "/=\\");
                     break;
                 case 6:
                     strcat(lineBuffer, " + ");
                     break;
                 case 7:
-                    //printf(" o ");
                     strcat(lineBuffer, " * ");
                     break;
                     case 10:
                 case 71:
-                    //printf("!!!");
                     strcat(lineBuffer, "!!!");
                     break;
             }
@@ -338,11 +387,12 @@ void printMap(){
 
 }
 
+#endif
 
 /*      LOGIC       */
 
 
-void gameLogic(){//dividio em partes
+void gameLogic(){//dividido em partes
     int i,j;
     /* PLAYER_BULLETS  */
     for(i = 0; i < MAXBULLETS; i++){
